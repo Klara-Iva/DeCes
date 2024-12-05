@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">deces</string>
+    <string name="maps_api_key">@BuildConfig.MAPS_API_KEY</string>
+</resources>
