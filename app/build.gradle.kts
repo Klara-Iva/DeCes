@@ -19,7 +19,7 @@ android {
         buildConfig = true
     }
     namespace = "com.example.deces"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.example.deces"
@@ -44,7 +44,7 @@ android {
             buildConfigField("String", "MAPS_API_KEY", "\"${mapsApiKey}\"")
         }
         debug {
-            isDebuggable = true  // Ovdje možete omogućiti generiranje BuildConfig
+            isDebuggable = true
             buildConfigField("String", "MAPS_API_KEY", "\"${mapsApiKey}\"")
         }
 
@@ -58,6 +58,7 @@ android {
     }
     buildFeatures {
         compose = true
+        viewBinding = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.1"
@@ -78,12 +79,18 @@ dependencies {
     implementation(libs.ui.tooling.preview)
     implementation(libs.material3)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
-    implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.firestore)
-    implementation(libs.play.services.maps)
-    implementation(libs.play.services.maps)
-    implementation(libs.maps.compose)
+    implementation(libs.firebase.auth.ktx)
 
+    implementation(platform(libs.firebase.bom.v3230))
+    implementation(libs.firebase.firestore.ktx)
+    implementation(libs.androidx.navigation.compose.v276)
+    implementation(libs.play.services.maps.v1900)
+    implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.constraintlayout)
+    implementation ("androidx.compose.foundation:foundation:1.5.1")
+    implementation ("io.coil-kt:coil-compose:2.3.0")
+    implementation ("androidx.navigation:navigation-compose:2.6.0")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.espresso.core.v351)

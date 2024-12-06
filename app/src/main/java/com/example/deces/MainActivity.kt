@@ -1,96 +1,128 @@
 package com.example.deces
 
+import androidx.compose.material3.Text
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.navigation.NavHostController
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
+import androidx.navigation.compose.rememberNavController
 import com.example.deces.ui.theme.DecesTheme
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.android.gms.maps.CameraUpdateFactory
-import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.model.LatLng
-import com.google.maps.android.compose.GoogleMap
-import com.google.maps.android.compose.Marker
-import com.google.maps.android.compose.rememberCameraPositionState
+import androidx.compose.runtime.Composable
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.ui.Alignment
+import androidx.navigation.compose.currentBackStackEntryAsState
+import com.example.deces.bottomnavigationbar.BottomBar
+import com.example.deces.bottomnavigationbar.BottomNavigationItems
+import com.example.deces.bottomnavigationbar.NavigationGraph
+
 
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            DisplayLocationName()
+            DecesTheme {
+                val navController: NavHostController = rememberNavController() // Kreiraj navController
+
+                // Provjerava koji je trenutni ekran
+                val currentRoute by navController.currentBackStackEntryAsState()
+
+                // Varijabla za upravljanje vidljivošću BottomBar-a
+                var isBottomBarVisible by remember { mutableStateOf(true) }
+
+                // Postavljanje funkcije za promjenu vidljivosti BottomBar-a
+                val onBottomBarVisibilityChanged: (Boolean) -> Unit = { isVisible ->
+                    isBottomBarVisible = isVisible
+                }
+
+                // Postavlja uvjet za prikazivanje BottomBar-a
+                isBottomBarVisible = when (currentRoute?.destination?.route) {
+                    BottomNavigationItems.MapScreen.route -> false // Sakrij BottomBar na MapScreen
+                    else -> true // Prikazuj BottomBar na ostalim ekranima
+                }
+
+                Scaffold(
+                    bottomBar = {
+                        // Ako je BottomBar vidljiv, prikazat ćemo ga
+                        if (isBottomBarVisible) {
+                            BottomBar(navController = navController, state = true)
+                        }
+                    }
+                ) { paddingValues ->
+                    Box(modifier = Modifier.padding(paddingValues)) {
+                        // Prosljeđivanje funkcije za upravljanje vidljivošću BottomBar-a
+                        NavigationGraph(navController = navController, onBottomBarVisibilityChanged = onBottomBarVisibilityChanged)
+                    }
+                }
+            }
         }
+    }
+}
+
+
+
+
+
+@Composable
+fun Screen2() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .wrapContentSize(Alignment.Center)
+    ) {
+        Text(
+            text = "Screen 2222"
+        )
     }
 }
 
 @Composable
-fun DisplayLocationName() {
-    // Firebase Firestore instance
-    val db = FirebaseFirestore.getInstance()
-    var locationName by remember { mutableStateOf("Loading...") } // State za prikaz imena
-
-    // Dohvaćanje podataka iz Firestore-a
-    LaunchedEffect(Unit) {
-        db.collection("locations")
-            .document("jXNMiLbpBsyiMzI5Asp5") // ID dokumenta
-            .get()
-            .addOnSuccessListener { document ->
-                if (document != null && document.exists()) {
-                    locationName = document.getString("name") ?: "Name not found"
-                } else {
-                    locationName = "Document not found"
-                }
-            }
-            .addOnFailureListener { exception ->
-                locationName = "Error: ${exception.message}"
-            }
-    }
-
-    // Prikaz podataka u Jetpack Compose UI
-    Surface(
+fun Screen3() {
+    Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
-        color = MaterialTheme.colorScheme.background
+            .wrapContentSize(Alignment.Center)
     ) {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(text = "Location Name:")
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(text = locationName)
-
-            // Integracija s Google Mapom
-            val cameraPositionState = rememberCameraPositionState {
-                position = com.google.android.gms.maps.model.CameraPosition.fromLatLngZoom(
-                    LatLng(37.7749, -122.4194), 12f) // Početna pozicija mape (San Francisco)
-            }
-
-            GoogleMap(
-                cameraPositionState = cameraPositionState,
-                modifier = Modifier.fillMaxSize()
-            ) {
-            }
-        }
+        Text(
+            text = "Screen 333"
+        )
     }
 }
+
+@Composable
+fun Screen4() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .wrapContentSize(Alignment.Center)
+    ) {
+        Text(
+            text = "Screen 44"
+        )
+    }
+}
+
+@Composable
+fun Screen5() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .wrapContentSize(Alignment.Center)
+    ) {
+        Text(
+            text = "Screen 5555"
+        )
+    }
+}
+
+
