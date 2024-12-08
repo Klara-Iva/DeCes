@@ -5,10 +5,12 @@ import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 
 object CameraBounds {
-    var camerapostion: CameraPosition = CameraPosition.fromLatLngZoom(LatLng(45.5549, 18.6956),13.7f)
+    var camerapostion: CameraPosition = CameraPosition.fromLatLngZoom(LatLng(45.5549, 18.6956),12.7f)
     var latitude:Double=0.0
     var longitude:Double=0.0
     var showSpecifiedLocationOnMap=false
+    var selectedCityName: String ="Osijek"
+
 
     fun setCoordinates(lat:Double,lng:Double){
         latitude=lat
@@ -16,6 +18,7 @@ object CameraBounds {
     }
     fun setCameraPosition(position: CameraPosition){
         camerapostion=position
+
 
     }
     fun getCameraPosition(): CameraPosition {
