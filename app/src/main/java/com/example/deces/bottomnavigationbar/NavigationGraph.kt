@@ -8,7 +8,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.deces.AllEventsScreen
 import com.example.deces.EventDetailScreen
+import com.example.deces.HomeScreen
 import com.example.deces.MapScreen
+import com.example.deces.RegisterScreen
 import com.example.deces.Screen2
 import com.example.deces.Screen3
 import com.example.deces.Screen4
@@ -16,7 +18,7 @@ import com.example.deces.Screen5
 
 @Composable
 fun NavigationGraph(navController: NavHostController, onBottomBarVisibilityChanged: (Boolean) -> Unit) {
-    NavHost(navController, startDestination = BottomNavigationItems.Screen3.route) {
+    NavHost(navController, startDestination = "home") {
         composable(BottomNavigationItems.Screen3.route) {
             onBottomBarVisibilityChanged(true)
             AllEventsScreen(navController)
@@ -47,5 +49,18 @@ fun NavigationGraph(navController: NavHostController, onBottomBarVisibilityChang
                 EventDetailScreen(navController= navController,documentId = documentId)
             }
         }
+
+        composable("home") {
+            onBottomBarVisibilityChanged(false)
+            HomeScreen(navController = navController)
+
+        }
+        composable("register") {
+            onBottomBarVisibilityChanged(false)
+            RegisterScreen(navController = navController)
+
+        }
+
+
     }
 }
