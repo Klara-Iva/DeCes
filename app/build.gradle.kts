@@ -84,7 +84,9 @@ dependencies {
     implementation(libs.play.services.maps)
     implementation(libs.maps.compose)
 
-
+    implementation(libs.androidx.compose.material3)
+    implementation(libs.navigation.compose)
+    implementation(libs.firebase.auth.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.espresso.core.v351)
     debugImplementation(libs.ui.tooling)
