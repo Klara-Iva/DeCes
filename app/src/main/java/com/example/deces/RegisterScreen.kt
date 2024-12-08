@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.deces.bottomnavigationbar.BottomNavigationItems
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
 @Composable
 fun RegisterScreen(navController: NavController) {
@@ -22,6 +23,7 @@ fun RegisterScreen(navController: NavController) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var birthDate by remember { mutableStateOf("") }
+    val firestore = FirebaseFirestore.getInstance()
 
     Box(
         modifier = Modifier
@@ -64,55 +66,60 @@ fun RegisterScreen(navController: NavController) {
             Spacer(modifier = Modifier.height(32.dp))
 
             // Name Input
-            OutlinedTextField(
-                value = name,
+            OutlinedTextField(value = name,
                 onValueChange = { name = it },
                 label = { Text("IME", color = Color.White) },// Label inside the TextField
                 modifier = Modifier
                     .width(280.dp)
                     .padding(vertical = 8.dp)
-                    .background(Color(0xFF8A6D57), shape = RoundedCornerShape(51)), // Background color and rounded corners
+                    .background(
+                        Color(0xFF8A6D57), shape = RoundedCornerShape(51)
+                    ), // Background color and rounded corners
                 singleLine = true,
                 textStyle = TextStyle(color = Color.White)
             )
 
             // Email Input
-            OutlinedTextField(
-                value = email,
+            OutlinedTextField(value = email,
                 onValueChange = { email = it },
                 label = { Text("EMAIL", color = Color.White) },// Label inside the TextField
                 modifier = Modifier
                     .width(280.dp)
                     .padding(vertical = 8.dp)
-                    .background(Color(0xFF8A6D57), shape = RoundedCornerShape(51)), // Background color and rounded corners
+                    .background(
+                        Color(0xFF8A6D57), shape = RoundedCornerShape(51)
+                    ), // Background color and rounded corners
                 singleLine = true,
                 textStyle = TextStyle(color = Color.White)
             )
 
             // Password Input
-            OutlinedTextField(
-                value = password,
+            OutlinedTextField(value = password,
                 onValueChange = { password = it },
                 label = { Text("LOZINKA", color = Color.White) },// Label inside the TextField
                 modifier = Modifier
                     .width(280.dp)
                     .padding(vertical = 8.dp)
-                    .background(Color(0xFF8A6D57), shape = RoundedCornerShape(51)), // Background color and rounded corners
+                    .background(
+                        Color(0xFF8A6D57), shape = RoundedCornerShape(51)
+                    ), // Background color and rounded corners
                 singleLine = true,
                 textStyle = TextStyle(color = Color.White)
             )
 
             // Birth Date Input
-            OutlinedTextField(
-                value = birthDate,
-                onValueChange = { birthDate = it },
-                label = { Text("DATUM RODJENJA", color = Color.White) },// Label inside the TextField
+            OutlinedTextField(value = birthDate, onValueChange = { birthDate = it }, label = {
+                Text(
+                    "DATUM RODJENJA", color = Color.White
+                )
+            },// Label inside the TextField
                 modifier = Modifier
                     .width(280.dp)
                     .padding(vertical = 8.dp)
-                    .background(Color(0xFF8A6D57), shape = RoundedCornerShape(51)), // Background color and rounded corners
-                singleLine = true,
-                textStyle = TextStyle(color = Color.White)
+                    .background(
+                        Color(0xFF8A6D57), shape = RoundedCornerShape(51)
+                    ), // Background color and rounded corners
+                singleLine = true, textStyle = TextStyle(color = Color.White)
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -122,19 +129,37 @@ fun RegisterScreen(navController: NavController) {
                 onClick = {
                     println("Name: $name, Email: $email, Password: $password, BirthDate: $birthDate")
                     val auth = FirebaseAuth.getInstance()
-                    if (email.isNotEmpty() && password.isNotEmpty()) {
+                    if (email.isNotEmpty() && password.isNotEmpty() && name.isNotEmpty()) {
                         auth.createUserWithEmailAndPassword(email, password)
                             .addOnCompleteListener { task ->
                                 if (task.isSuccessful) {
-                                    // Navigate to another screen or show a success message
-                                    navController.navigate(BottomNavigationItems.Screen3.route)
+                                    val currentUser = auth.currentUser
+                                    if (currentUser != null) {
+                                        // Add user to Firestore
+                                        val userData = hashMapOf(
+                                            "name" to name, "email" to email
+                                        )
+                                        firestore.collection("users").document(currentUser.uid)
+                                            .set(userData).addOnSuccessListener {
+                                                // Create an empty "reviews" subcollection
+                                                firestore.collection("users")
+                                                    .document(currentUser.uid).collection("reviews")
+                                                    .add(hashMapOf("initialized" to true)) // Example: initialize the collection
+                                                    .addOnCompleteListener {
+                                                        // Navigate to another screen
+                                                        navController.navigate(BottomNavigationItems.Screen3.route)
+                                                    }
+                                            }.addOnFailureListener { e ->
+                                                println("Error adding user: ${e.message}")
+                                            }
+                                    } else {
+                                        println("Error: User not logged in even after registration.")
+                                    }
                                 } else {
-                                    // Handle registration error
                                     println("Error: ${task.exception?.message}")
                                 }
                             }
                     } else {
-                        // Handle empty fields
                         println("Please fill all fields.")
                     }
                 },
@@ -147,6 +172,7 @@ fun RegisterScreen(navController: NavController) {
             ) {
                 Text("Registracija", fontSize = 16.sp, color = Color.White)
             }
+
         }
     }
 }

@@ -15,18 +15,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CardElevation
-import androidx.compose.material3.ExposedDropdownMenuDefaults.outlinedTextFieldColors
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -34,23 +30,22 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
+import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
-
+import java.text.SimpleDateFormat
+import java.util.Date
 
 
 @Composable
@@ -77,9 +72,7 @@ fun AllEventsScreen(navController: NavController) {
             .absolutePadding(5.dp, 5.dp, 5.dp, 0.dp)
     ) {
         TextField(
-            maxLines = 1,
-            value = searchQuery,
-            onValueChange = {
+            maxLines = 1, value = searchQuery, onValueChange = {
                 searchQuery = it
                 locations = if (searchQuery.isEmpty()) {
                     allLocations
@@ -90,15 +83,13 @@ fun AllEventsScreen(navController: NavController) {
                 }
             },
 
-            label = { Text("Search Events") },
-            modifier = Modifier.fillMaxWidth()
+            label = { Text("Search Events") }, modifier = Modifier.fillMaxWidth()
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
         LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
-            modifier = Modifier.fillMaxSize()
+            columns = GridCells.Fixed(2), modifier = Modifier.fillMaxSize()
         ) {
             items(locations) { location ->
                 val isFavorite = favoriteLocations.contains(location.id)
@@ -120,8 +111,7 @@ fun LocationCard(
 ) {
     var animationScale by remember { mutableFloatStateOf(1f) }
     val animatedScale by animateFloatAsState(
-        targetValue = animationScale,
-        animationSpec = tween(durationMillis = 100)
+        targetValue = animationScale, animationSpec = tween(durationMillis = 100)
     )
     val db = Firebase.firestore
 
@@ -133,7 +123,8 @@ fun LocationCard(
 
             db.runTransaction { transaction ->
                 val snapshot = transaction.get(userRef)
-                val favorites = snapshot.get("favourites") as? MutableList<String> ?: mutableListOf()
+                val favorites =
+                    snapshot.get("favourites") as? MutableList<String> ?: mutableListOf()
                 if (localIsFavorite) {
                     favorites.remove(location.id)
                 } else {
@@ -158,7 +149,7 @@ fun LocationCard(
     Card(
 
         shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(5.dp) ,
+        elevation = CardDefaults.cardElevation(5.dp),
         modifier = Modifier
             .fillMaxWidth()
 
@@ -166,9 +157,8 @@ fun LocationCard(
             .height(250.dp)
             .clickable {
                 navController.navigate("eventDetail/${location.id}")
-            }
-    ) {
-        Column( modifier= Modifier.background(Color(0xFFFFFFFF))) {
+            }) {
+        Column(modifier = Modifier.background(Color(0xFFFFFFFF))) {
 
 
             Box {
@@ -184,15 +174,12 @@ fun LocationCard(
             }
             Column(modifier = Modifier.padding(8.dp)) {
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center
+                    modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center
                 ) {
                     Text(
-                        location.name,
-                        maxLines = 2,
+                        location.name, maxLines = 2,
 
-                        fontSize = 16.sp,
-                        textAlign = TextAlign.Center
+                        fontSize = 16.sp, textAlign = TextAlign.Center
                     )
                 }
                 Spacer(modifier = Modifier.height(10.dp))
@@ -206,7 +193,6 @@ fun LocationCard(
                     modifier = Modifier.padding(3.dp)
 
 
-
                 )
             }
         }
@@ -215,22 +201,22 @@ fun LocationCard(
 
 fun fetchLocationsFromFirestore(onResult: (List<Location>) -> Unit) {
     val firestore = FirebaseFirestore.getInstance()
-    firestore.collection("events")
-        .get()
-        .addOnSuccessListener { documents ->
+    firestore.collection("events").get().addOnSuccessListener { documents ->
             val locations = documents.mapNotNull { doc ->
                 val name = doc.getString("name")
                 val imageUrl = doc.getString("photo1")
                 val description = doc.getString("description")
+                val startdate = doc.getTimestamp("startdate")?.toDate() ?: Date()
+                val dateFormat = SimpleDateFormat("dd.MM.yyyy.") // Format: 08.12.2024.
+                val formattedDate = dateFormat.format(startdate)
                 if (name != null && imageUrl != null && description != null) {
-                    Location(doc.id, name,  description,imageUrl,)
+                    Location(doc.id, name, description, imageUrl, formattedDate)
                 } else {
                     null
                 }
             }
             onResult(locations)
-        }
-        .addOnFailureListener {
+        }.addOnFailureListener {
             onResult(emptyList())
         }
 }

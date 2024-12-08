@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="CustomCalendarView" parent="android:Widget.CalendarView">
+        <item name="android:dateTextAppearance">@style/CustomDateTextAppearance</item>
+        <item name="android:selectedDateVerticalBar">@color/selected_day_color</item>
+        <item name="android:selectedWeekBackgroundColor">@color/selected_day_color</item>
+        <item name="android:focusedMonthDateColor">@color/selected_day_color</item>
+        <item name="android:unfocusedMonthDateColor">@color/calendar_text_color</item>
+        <item name="android:weekNumberColor">@android:color/transparent</item>
+        <item name="android:weekSeparatorLineColor">@android:color/transparent</item>
+    </style>
+
+    <style name="CustomDateTextAppearance" parent="TextAppearance.AppCompat">
+        <item name="android:textColor">@color/calendar_text_color</item>
+        <item name="android:textSize">16sp</item>
+    </style>
+
+
+</resources>

@@ -7,33 +7,36 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.deces.AllEventsScreen
+import com.example.deces.CalendarScreen
 import com.example.deces.EventDetailScreen
+import com.example.deces.FavouritesScreen
 import com.example.deces.HomeScreen
 import com.example.deces.MapScreen
 import com.example.deces.RegisterScreen
-import com.example.deces.Screen2
+
 import com.example.deces.Screen3
-import com.example.deces.Screen4
+
 import com.example.deces.Screen5
 
 @Composable
 fun NavigationGraph(navController: NavHostController, onBottomBarVisibilityChanged: (Boolean) -> Unit) {
     NavHost(navController, startDestination = "home") {
+
         composable(BottomNavigationItems.Screen3.route) {
             onBottomBarVisibilityChanged(true)
             AllEventsScreen(navController)
         }
         composable(BottomNavigationItems.Screen2.route) {
             onBottomBarVisibilityChanged(true)
-            Screen2()
+            CalendarScreen()
         }
         composable(BottomNavigationItems.MapScreen.route) {
-            onBottomBarVisibilityChanged(false)
+            onBottomBarVisibilityChanged(true)
             MapScreen(navController)
         }
         composable(BottomNavigationItems.Screen4.route) {
             onBottomBarVisibilityChanged(true)
-            Screen4()
+            FavouritesScreen(navController)
         }
         composable(BottomNavigationItems.Screen5.route) {
             onBottomBarVisibilityChanged(true)

@@ -39,8 +39,6 @@ fun BottomBar(
 
     Box(
         modifier = modifier
-            .padding(bottom = 10.dp, start = 10.dp, end = 10.dp, top = 5.dp)
-            .clip(RoundedCornerShape(21.dp))
             .background(Color(android.graphics.Color.parseColor("#382315")))
             .height(60.dp)
             .zIndex(1f)

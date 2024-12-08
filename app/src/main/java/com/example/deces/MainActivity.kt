@@ -26,13 +26,14 @@ import com.example.deces.bottomnavigationbar.BottomNavigationItems
 import com.example.deces.bottomnavigationbar.NavigationGraph
 
 
-
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         setContent {
             DecesTheme {
-                val navController: NavHostController = rememberNavController() // Kreiraj navController
+                val navController: NavHostController =
+                    rememberNavController() // Kreiraj navController
 
                 // Provjerava koji je trenutni ekran
                 val currentRoute by navController.currentBackStackEntryAsState()
@@ -51,17 +52,18 @@ class MainActivity : ComponentActivity() {
                     else -> true // Prikazuj BottomBar na ostalim ekranima
                 }
 
-                Scaffold(
-                    bottomBar = {
-                        // Ako je BottomBar vidljiv, prikazat ćemo ga
-                        if (isBottomBarVisible) {
-                            BottomBar(navController = navController, state = true)
-                        }
+                Scaffold(bottomBar = {
+                    // Ako je BottomBar vidljiv, prikazat ćemo ga
+                    if (isBottomBarVisible) {
+                        BottomBar(navController = navController, state = true)
                     }
-                ) { paddingValues ->
+                }) { paddingValues ->
                     Box(modifier = Modifier.padding(paddingValues)) {
                         // Prosljeđivanje funkcije za upravljanje vidljivošću BottomBar-a
-                        NavigationGraph(navController = navController, onBottomBarVisibilityChanged = onBottomBarVisibilityChanged)
+                        NavigationGraph(
+                            navController = navController,
+                            onBottomBarVisibilityChanged = onBottomBarVisibilityChanged
+                        )
                     }
                 }
             }
@@ -69,22 +71,6 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-
-
-
-
-@Composable
-fun Screen2() {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .wrapContentSize(Alignment.Center)
-    ) {
-        Text(
-            text = "Screen 2222"
-        )
-    }
-}
 
 @Composable
 fun Screen3() {
@@ -99,30 +85,6 @@ fun Screen3() {
     }
 }
 
-@Composable
-fun Screen4() {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .wrapContentSize(Alignment.Center)
-    ) {
-        Text(
-            text = "Screen 44"
-        )
-    }
-}
 
-@Composable
-fun Screen5() {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .wrapContentSize(Alignment.Center)
-    ) {
-        Text(
-            text = "Screen 5555"
-        )
-    }
-}
 
 

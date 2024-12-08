@@ -30,7 +30,9 @@ import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -48,8 +50,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.tasks.await
 
 
-
-
 @Composable
 fun Chip(
     // 1
@@ -62,12 +62,10 @@ fun Chip(
     modifier: Modifier = Modifier
 ) {
     // 5
-    val backgroundColor =
-        Color(0xFFe99e72)
+    val backgroundColor = Color(0xFFe99e72)
 
     // 6
-    val textColor =
-        Color.Black
+    val textColor = Color.Black
 
     // 7
     Box(
@@ -82,15 +80,25 @@ fun Chip(
             text = label,
             color = textColor,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier
-                .padding(horizontal = 20.dp, vertical = 6.dp)
+            modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp)
         )
     }
 }
 
 
+@SuppressLint("ModifierFactoryUnreferencedReceiver")
+fun Modifier.noRippleClickable(onClick: () -> Unit): Modifier = composed {
+    clickable(
+        interactionSource = remember { MutableInteractionSource() },
+        indication = null,
+        onClick = onClick
+    )
+}
+
 @Composable
 fun EventDetailScreen(documentId: String, navController: NavController) {
+
+
     var location by remember { mutableStateOf<Map<String, Any>?>(null) }
     var images by remember { mutableStateOf(listOf<String>()) }
     var isFavorite by remember { mutableStateOf(false) }
@@ -98,20 +106,18 @@ fun EventDetailScreen(documentId: String, navController: NavController) {
     val db = FirebaseFirestore.getInstance()
     var animationScale by remember { mutableStateOf(1f) }
     val animatedScale by animateFloatAsState(
-        targetValue = animationScale,
-        animationSpec = tween(durationMillis = 100)
+        targetValue = animationScale, animationSpec = tween(durationMillis = 100)
     )
 
+
     LaunchedEffect(documentId) {
-        db.collection("events").document(documentId).get()
-            .addOnSuccessListener { document ->
+        db.collection("events").document(documentId).get().addOnSuccessListener { document ->
                 location = document.data
                 images = (1..5).mapNotNull { document.getString("photo$it") }
             }
 
         userId?.let { uid ->
-            db.collection("users").document(uid).get()
-                .addOnSuccessListener { document ->
+            db.collection("users").document(uid).get().addOnSuccessListener { document ->
                     val favorites = document.get("favourites") as? List<String> ?: emptyList()
                     isFavorite = favorites.contains(documentId)
                 }
@@ -126,10 +132,15 @@ fun EventDetailScreen(documentId: String, navController: NavController) {
                 val snapshot = transaction.get(userRef)
                 val favorites =
                     snapshot.get("favourites") as? MutableList<String> ?: mutableListOf()
-                if (isFavorite) favorites.remove(documentId) else favorites.add(documentId)
+                if (isFavorite) {
+                    favorites.remove(documentId)
+                } else {
+                    favorites.add(documentId)
+                }
                 transaction.update(userRef, "favourites", favorites)
             }.addOnSuccessListener {
                 isFavorite = !isFavorite
+                // Trigger animation
                 animationScale = 1.2f
             }
         }
@@ -146,7 +157,7 @@ fun EventDetailScreen(documentId: String, navController: NavController) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFFf8f7f7)),
+                .background(Color(0xFF291b11)),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             item {
@@ -154,8 +165,7 @@ fun EventDetailScreen(documentId: String, navController: NavController) {
                     val pagerState =
                         rememberPagerState(initialPage = 0, pageCount = { images.size })
 
-                    HorizontalPager(
-                        state = pagerState,
+                    HorizontalPager(state = pagerState,
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(300.dp),
@@ -168,8 +178,7 @@ fun EventDetailScreen(documentId: String, navController: NavController) {
                                     .fillMaxWidth()
                                     .height(300.dp)
                             )
-                        }
-                    )
+                        })
 
                     Spacer(modifier = Modifier.height(16.dp))
 
@@ -180,7 +189,7 @@ fun EventDetailScreen(documentId: String, navController: NavController) {
                     ) {
                         repeat(images.size) { index ->
                             val color =
-                                if (pagerState.currentPage == index) Color.Black else Color.LightGray
+                                if (pagerState.currentPage == index) Color.LightGray else Color.Black
                             Box(
                                 modifier = Modifier
                                     .size(8.dp)
@@ -210,16 +219,16 @@ fun EventDetailScreen(documentId: String, navController: NavController) {
                         fontWeight = FontWeight.Bold,
                         fontSize = 24.sp,
                         modifier = Modifier.padding(end = 8.dp),
-                        color = Color(0xFF3E2723)
+                        color = Color.White
                     )
 
-                    Icon(
-                        imageVector = if (isFavorite) Icons.Outlined.Favorite else Icons.Outlined.FavoriteBorder,
+                    Image(painter = painterResource(id = if (isFavorite) R.drawable.ic_favourite else R.drawable.ic_favourite_border),
                         contentDescription = if (isFavorite) "Unfavorite" else "Favorite",
+                        colorFilter = ColorFilter.tint(Color(0xFFf58845)),
                         modifier = Modifier
                             .size(55.dp)
                             .scale(animatedScale)
-                    )
+                            .noRippleClickable { toggleFavorite() })
                 }
             }
 
@@ -228,8 +237,7 @@ fun EventDetailScreen(documentId: String, navController: NavController) {
                     horizontalArrangement = Arrangement.Start,// NE ZELI BIT ULIJEVO
                 ) {
                     Chip(
-                        loc["category"] as String, true,
-                        modifier = Modifier
+                        loc["category"] as String, true, modifier = Modifier
                     )
                 }
             }
@@ -257,16 +265,13 @@ fun EventDetailScreen(documentId: String, navController: NavController) {
                             var latitude: Double = 0.0
                             var longitude: Double = 0.0
                             val docRef = db.collection("events").document(documentId)
-                            docRef.get()
-                                .addOnSuccessListener { document ->
+                            docRef.get().addOnSuccessListener { document ->
                                     latitude = document.data!!["latitude"].toString().toDouble()
                                     longitude = document.data!!["longitude"].toString().toDouble()
-                                }
-                                .addOnCompleteListener {
+                                }.addOnCompleteListener {
                                     CameraBounds.showSpecifiedLocationOnMap = true
                                     val cameraPosition = CameraPosition.fromLatLngZoom(
-                                        LatLng(latitude, longitude),
-                                        19f
+                                        LatLng(latitude, longitude), 19f
                                     )
                                     CameraBounds.camerapostion = cameraPosition
                                     CameraBounds.showSpecifiedLocationOnMap = true
@@ -280,8 +285,7 @@ fun EventDetailScreen(documentId: String, navController: NavController) {
                                 }
                         },
 
-                        modifier = Modifier.padding(end = 8.dp),
-                        shape = RoundedCornerShape(50)
+                        modifier = Modifier.padding(end = 8.dp), shape = RoundedCornerShape(50)
                     ) {
                         Text(
                             text = "Find on map"
@@ -294,6 +298,8 @@ fun EventDetailScreen(documentId: String, navController: NavController) {
         }
     }
 }
+
+
 
 
 

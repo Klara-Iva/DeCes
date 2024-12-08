@@ -13,6 +13,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -20,9 +21,26 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.deces.bottomnavigationbar.BottomNavigationItems
+import com.google.firebase.auth.FirebaseAuth
 
 @Composable
 fun HomeScreen(navController: NavController) {
+
+    // Provjera je li korisnik već prijavljen
+    val auth = FirebaseAuth.getInstance()
+    val currentUser = auth.currentUser
+
+    // Ako je korisnik prijavljen, preusmjeri ga na prvi screen
+    LaunchedEffect(currentUser) {
+        if (currentUser != null) {
+            navController.navigate(BottomNavigationItems.Screen3.route) {
+                popUpTo("home") { inclusive = true } // Makni HomeScreen sa stacka
+            }
+        }
+    }
+
+
     Box(
         modifier = Modifier
             .fillMaxSize()
