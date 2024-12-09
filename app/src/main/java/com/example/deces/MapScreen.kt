@@ -7,20 +7,36 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardElevation
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.*
@@ -66,11 +82,11 @@ fun MapScreen(navController: NavController) {
             )
         }
 
-        val locationPermissionLauncher =
-            rememberLauncherForActivityResult(contract = ActivityResultContracts.RequestPermission(),
-                onResult = { granted ->
-                    hasLocationPermission = granted
-                })
+        val locationPermissionLauncher = rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.RequestPermission(),
+            onResult = { granted ->
+                hasLocationPermission = granted
+            })
 
         LaunchedEffect(key1 = true) {
             if (!hasLocationPermission) {
@@ -85,93 +101,133 @@ fun MapScreen(navController: NavController) {
                 }
 
         }
+
         BackHandler {
             (context as ComponentActivity).finish()
         }
-
-
 
         if (hasLocationPermission) {
             Column {
 
                 val isDropDownExpanded = remember { mutableStateOf(false) }
                 val itemPosition = remember { mutableStateOf(0) }
-
                 var cities by remember { mutableStateOf<List<City>>(emptyList()) }
 
                 LaunchedEffect(Unit) {
                     val db = FirebaseFirestore.getInstance()
-                    db.collection("availableCities")
-                        .get()
-                        .addOnSuccessListener { result ->
+                    db.collection("availableCities").get().addOnSuccessListener { result ->
                             cities = result.map {
                                 val name = it.getString("name") ?: "Unknown"
                                 val lat = it.getDouble("latitude") ?: 0.0
                                 val lng = it.getDouble("longitude") ?: 0.0
-                                City(name, lat, lng)
+                                val zoom = it.getString("zoom") ?: "13.7f"
+                                City(name, lat, lng, zoom)
                             }
-                        }
-                        .addOnFailureListener { exception ->
+                        }.addOnFailureListener { exception ->
 
                         }
                 }
 
-                // Koristimo Column za layout
+                //TODO widths and aligment not correct
                 Column(
-                    modifier = Modifier.fillMaxWidth().padding(50.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(20.dp),
+                    horizontalAlignment = Alignment.End,
                     verticalArrangement = Arrangement.Top
                 ) {
-                    Box {
-                        // Dodajemo Row za dropdown button
-                        Row(
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.clickable {
-                                isDropDownExpanded.value = true
-                            }
-                        ) {
+                    Box(
+                        contentAlignment = Alignment.TopEnd
+                    ) {
 
-                            Text(text = CameraBounds.selectedCityName)
+                        Card(shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier
+                                .widthIn(min = 150.dp)
+                                .align(Alignment.TopEnd)
+                                .clickable {
+                                    isDropDownExpanded.value = true
+                                }
+                                .background(MaterialTheme.colorScheme.surface)) {
+                            Row(
+                                modifier = Modifier
+                                    .padding(16.dp)
+                                    .fillMaxWidth(),
+                                horizontalArrangement = Arrangement.End,
+                                verticalAlignment = Alignment.Top
+                            ) {
+                                Text(
+                                    text = CameraBounds.selectedCityName,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Icon(
+                                    imageVector = if (isDropDownExpanded.value) Icons.Default.KeyboardArrowDown else Icons.Default.ArrowDropDown,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
                         }
 
-                        // Dropdown Menu
                         DropdownMenu(
+
                             expanded = isDropDownExpanded.value,
-                            onDismissRequest = {
-                                isDropDownExpanded.value = false
-                            }
+                            onDismissRequest = { isDropDownExpanded.value = false },
+                            modifier = Modifier
+                                .fillMaxWidth() // Postavljamo širinu dropdowna na 200dp
+
+                                .background(
+                                    MaterialTheme.colorScheme.surface, RoundedCornerShape(12.dp)
+                                )
                         ) {
                             cities.forEachIndexed { index, city ->
+                                DropdownMenuItem(text = {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.End,
+                                        modifier = Modifier.padding(vertical = 4.dp)
+                                    ) {
+                                        Text(
 
-                                DropdownMenuItem(
-                                    text={
-                                        Text(text = city.name)
-                                    },
+                                            text = city.name,
+                                            style = MaterialTheme.typography.bodyLarge,
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Icon(
+                                            imageVector = Icons.Default.LocationOn,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier.size(20.dp)
+                                        )
+                                    }
+                                },
                                     onClick = {
                                         isDropDownExpanded.value = false
-                                        itemPosition.value = index // Postavi odabrani grad
+                                        itemPosition.value = index
 
-                                        // Uzmi lat i lng gradova
                                         val latitude = city.latitude
                                         val longitude = city.longitude
-                                        CameraBounds.selectedCityName=city.name
-
-                                        // Ažuriraj CameraBounds s novim koordinatama
+                                        CameraBounds.selectedCityName = city.name
+                                        val zoom = city.zoom
                                         CameraBounds.setCoordinates(latitude, longitude)
-
-                                        // Ažuriraj poziciju kamere
-                                        val cameraPosition = CameraPosition.fromLatLngZoom(LatLng(latitude, longitude), 13.7f)
+                                        val cameraPosition = CameraPosition.fromLatLngZoom(
+                                            LatLng(latitude, longitude), zoom.toFloat()
+                                        )
                                         CameraBounds.setCameraPosition(cameraPosition)
                                         navController.navigate(BottomNavigationItems.MapScreen.route)
-
-
-                                    }
+                                    },
+                                    modifier = Modifier
+                                        .background(MaterialTheme.colorScheme.surface)
+                                        .align(Alignment.End)
                                 )
                             }
                         }
                     }
                 }
+
+
+
 
                 AndroidView(
                     factory = { context ->
@@ -232,12 +288,11 @@ fun MapScreen(navController: NavController) {
                                         }
                                     }.addOnCompleteListener {
                                         for (location in locations) {
-                                            val myMarker =
-                                                googleMap.addMarker(
-                                                    MarkerOptions().position(
-                                                        location.cordinates
-                                                    )
+                                            val myMarker = googleMap.addMarker(
+                                                MarkerOptions().position(
+                                                    location.cordinates
                                                 )
+                                            )
                                             myMarker!!.tag = location.id
                                             markers.add(myMarker)
                                         }
@@ -290,7 +345,7 @@ fun MapScreen(navController: NavController) {
                         }
                     }, modifier = Modifier.fillMaxSize()
                 )
-}
+            }
 
         } else {
 
@@ -307,8 +362,10 @@ fun MapScreen(navController: NavController) {
 data class MapMarker(
     var id: String, var cordinates: LatLng
 )
-    data class City(
-        val name: String = "",
-        val latitude: Double = 0.0,
-        val longitude: Double = 0.0
-    )
+
+data class City(
+    val name: String = "",
+    val latitude: Double = 0.0,
+    val longitude: Double = 0.0,
+    val zoom: String = ""
+)

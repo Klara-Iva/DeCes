@@ -57,7 +57,6 @@ fun FavouritesScreen(navController: NavController) {
                 favorites.remove(locationId)
                 db.collection("users").document(uid).update("favourites", favorites)
                     .addOnSuccessListener {
-                        // Refresh the favorite locations
                         db.collection("users").document(uid).get()
                             .addOnSuccessListener { document ->
                                 val updatedFavorites =

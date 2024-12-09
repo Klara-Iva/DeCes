@@ -40,7 +40,7 @@ fun NavigationGraph(navController: NavHostController, onBottomBarVisibilityChang
         }
         composable(BottomNavigationItems.Screen5.route) {
             onBottomBarVisibilityChanged(true)
-            Screen5()
+            Screen5(navController)
         }
         composable(
             route = "eventDetail/{documentId}",
