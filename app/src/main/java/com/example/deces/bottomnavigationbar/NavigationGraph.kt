@@ -11,11 +11,9 @@ import com.example.deces.CalendarScreen
 import com.example.deces.EventDetailScreen
 import com.example.deces.FavouritesScreen
 import com.example.deces.HomeScreen
+import com.example.deces.LoginScreen
 import com.example.deces.MapScreen
 import com.example.deces.RegisterScreen
-
-import com.example.deces.Screen3
-
 import com.example.deces.Screen5
 
 @Composable
@@ -63,7 +61,11 @@ fun NavigationGraph(navController: NavHostController, onBottomBarVisibilityChang
             RegisterScreen(navController = navController)
 
         }
+        composable("login") {
+            onBottomBarVisibilityChanged(false)
+            LoginScreen(navController = navController)
 
+        }
 
     }
 }

@@ -112,7 +112,7 @@ fun FavouritesScreen(navController: NavController) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(topStart = 21.dp, topEnd = 21.dp))
-                    .background(Color(0xFF3A2D26))
+                    .background(Color(0xFF291b11))
                     .weight(1f) // Koristimo weight da popuni preostali prostor
             ) {
                 Column(

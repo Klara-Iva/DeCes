@@ -13,6 +13,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
@@ -35,18 +36,17 @@ fun Screen5(navController: NavController) {
     val firestore = FirebaseFirestore.getInstance()
     val user = auth.currentUser // Trenutno prijavljeni korisnik
     val userName = remember { mutableStateOf("") }
+    val showDialog = remember { mutableStateOf(false) } // Za praćenje stanja dijaloga
     val isDialogOpen = remember { mutableStateOf(false) }
     val newUserName = remember { mutableStateOf("") }
 
-    // Dozvoljava učitavanje imena korisnika prilikom pokretanja komponente
+
     LaunchedEffect(user?.uid) {
         user?.uid?.let { uid ->
-            firestore.collection("users").document(uid)
-                .get()
+            firestore.collection("users").document(uid).get()
                 .addOnSuccessListener { documentSnapshot ->
                     userName.value = documentSnapshot.get("name").toString()
-                }
-                .addOnFailureListener { exception ->
+                }.addOnFailureListener { exception ->
                     Toast.makeText(
                         navController.context,
                         "Greška pri dohvaćanju podataka: ${exception.message}",
@@ -55,16 +55,12 @@ fun Screen5(navController: NavController) {
                 }
         }
     }
-
-    // Popup za uređivanje imena
     if (isDialogOpen.value) {
-        AlertDialog(
-            onDismissRequest = { isDialogOpen.value = false },
+        AlertDialog(onDismissRequest = { isDialogOpen.value = false },
             title = { Text(text = "Uredi korisničko ime") },
             text = {
                 Column {
-                    BasicTextField(
-                        value = newUserName.value,
+                    BasicTextField(value = newUserName.value,
                         onValueChange = { newUserName.value = it },
                         modifier = Modifier
                             .background(Color.White)
@@ -77,8 +73,7 @@ fun Screen5(navController: NavController) {
                                 }
                                 innerTextField()
                             }
-                        }
-                    )
+                        })
                 }
             },
             confirmButton = {
@@ -86,17 +81,16 @@ fun Screen5(navController: NavController) {
                     val uid = user?.uid
                     if (uid != null && newUserName.value.isNotEmpty()) {
                         firestore.collection("users").document(uid)
-                            .update("name", newUserName.value)
-                            .addOnSuccessListener {
-                                userName.value = newUserName.value // Ažurira korisničko ime u aplikaciji
+                            .update("name", newUserName.value).addOnSuccessListener {
+                                userName.value =
+                                    newUserName.value // Ažurira korisničko ime u aplikaciji
                                 isDialogOpen.value = false // Zatvara popup
                                 Toast.makeText(
                                     navController.context,
                                     "Korisničko ime ažurirano",
                                     Toast.LENGTH_SHORT
                                 ).show()
-                            }
-                            .addOnFailureListener { exception ->
+                            }.addOnFailureListener { exception ->
                                 Toast.makeText(
                                     navController.context,
                                     "Greška pri ažuriranju: ${exception.message}",
@@ -112,11 +106,46 @@ fun Screen5(navController: NavController) {
                 TextButton(onClick = { isDialogOpen.value = false }) {
                     Text("Otkaži")
                 }
-            }
-        )
+            })
+    }
+    if (showDialog.value) {
+        // Popup za potvrdu slanja e-maila za promjenu lozinke
+        AlertDialog(onDismissRequest = { showDialog.value = false },
+            title = { Text("Potvrda") },
+            text = { Text("Jeste li sigurni da želite poslati mail za promjenu lozinke?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    auth.currentUser?.let {
+                        // Ako je korisnik prijavljen, šaljemo email za promjenu lozinke
+                        auth.sendPasswordResetEmail(it.email!!).addOnSuccessListener {
+                                Toast.makeText(
+                                    navController.context,
+                                    "E-mail za promjenu lozinke poslan!",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }.addOnFailureListener { exception ->
+                                Toast.makeText(
+                                    navController.context,
+                                    "Greška: ${exception.message}",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                    }
+                    showDialog.value = false
+                }) {
+                    Text("Da")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDialog.value = false }) {
+                    Text("Odustani")
+                }
+            })
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(
+        modifier = Modifier.fillMaxSize()
+    ) {
         // Gornji dio pozadine (narančasta boja)
         Box(
             modifier = Modifier
@@ -171,18 +200,18 @@ fun Screen5(navController: NavController) {
                 modifier = Modifier
                     .padding(16.dp)
                     .background(
-                        color = Color(0xFF382315),
-                        shape = RoundedCornerShape(21.dp)
+                        color = Color(0xFF382315), shape = RoundedCornerShape(21.dp)
                     )
                     .fillMaxWidth()
             ) {
-                MenuItem(
-                    icon = Icons.Default.Edit,
+                MenuItem(icon = Icons.Default.Edit,
                     title = "Uredi korisničko ime",
                     onClick = { isDialogOpen.value = true } // Otvara popup
                 )
                 Divider(color = Color(0xFF6a5240), thickness = 1.dp)
-                MenuItem(icon = Icons.Default.Email, title = "Uredi adresu e-pošte")
+                MenuItem(icon = Icons.Default.Lock,
+                    title = "Promijeni lozinku",
+                    onClick = { showDialog.value = true })
                 Divider(color = Color(0xFF6a5240), thickness = 1.dp)
                 MenuItem(icon = Icons.Default.Settings, title = "Uredi preference")
                 Divider(color = Color(0xFF6a5240), thickness = 1.dp)
@@ -190,7 +219,12 @@ fun Screen5(navController: NavController) {
                 Divider(color = Color(0xFF6a5240), thickness = 1.dp)
                 MenuItem(icon = Icons.Default.ExitToApp, title = "Odjava", onClick = {
                     auth.signOut() // Odjava
-                    navController.navigate("home") // Preusmjeravanje na početnu stranicu
+                    navController.navigate("home") {
+                        popUpTo(navController.graph.startDestinationId) {
+                            inclusive = true
+                        }
+                        launchSingleTop = true
+                    }
                 })
             }
         }
@@ -233,3 +267,4 @@ fun MenuItem(icon: ImageVector, title: String, onClick: (() -> Unit)? = null) {
         )
     }
 }
+

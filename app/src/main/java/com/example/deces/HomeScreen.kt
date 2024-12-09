@@ -86,7 +86,7 @@ fun HomeScreen(navController: NavController) {
             Spacer(modifier = Modifier.height(16.dp))
 
             Button(
-                onClick = { /* Navigate to Login Screen */ },
+                onClick = { navController.navigate("login") },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF58845)), // Button color: #f58845
                 shape = RoundedCornerShape(50),
                 modifier = Modifier
