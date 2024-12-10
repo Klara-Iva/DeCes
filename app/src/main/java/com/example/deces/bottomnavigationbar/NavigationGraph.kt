@@ -16,9 +16,6 @@ import com.example.deces.HomeScreen
 import com.example.deces.LoginScreen
 import com.example.deces.MapScreen
 import com.example.deces.RegisterScreen
-
-import com.example.deces.Screen3
-
 import com.example.deces.Screen5
 
 @Composable
@@ -69,7 +66,6 @@ fun NavigationGraph(navController: NavHostController, onBottomBarVisibilityChang
         composable("login") {
             onBottomBarVisibilityChanged(false)
             LoginScreen(navController = navController)
-
         }
         composable("chooseCity") {
             onBottomBarVisibilityChanged(false)
@@ -82,6 +78,7 @@ fun NavigationGraph(navController: NavHostController, onBottomBarVisibilityChang
 
         }
 
+        }
 
     }
 }
