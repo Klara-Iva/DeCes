@@ -91,6 +91,8 @@ dependencies {
     implementation ("androidx.compose.foundation:foundation:1.5.1")
     implementation ("io.coil-kt:coil-compose:2.3.0")
     implementation ("androidx.navigation:navigation-compose:2.6.0")
+    implementation(libs.play.services.auth)
+    implementation(libs.accompanist.flowlayout)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.espresso.core.v351)

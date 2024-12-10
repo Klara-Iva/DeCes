@@ -1,5 +1,6 @@
 package com.example.deces
 
+import android.app.Activity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,32 +15,47 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.deces.bottomnavigationbar.BottomNavigationItems
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.firebase.auth.FirebaseAuth
+private const val RC_SIGN_IN = 9001
 
 @Composable
 fun HomeScreen(navController: NavController) {
 
-    // Provjera je li korisnik već prijavljen
     val auth = FirebaseAuth.getInstance()
-    val currentUser = auth.currentUser
+    val context = LocalContext.current
 
-    // Ako je korisnik prijavljen, preusmjeri ga na prvi screen
+    // Configure Google Sign-In
+    val googleSignInClient = remember {
+        GoogleSignIn.getClient(
+            context,
+            GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken(context.getString(R.string.default_web_client_id)) // Add Web Client ID from Firebase
+                .requestEmail()
+                .build()
+        )
+    }
+
+    // Check if user is already logged in
+    val currentUser = auth.currentUser
     LaunchedEffect(currentUser) {
         if (currentUser != null) {
             navController.navigate(BottomNavigationItems.Screen3.route) {
-                popUpTo("home") { inclusive = true } // Makni HomeScreen sa stacka
+                popUpTo("home") { inclusive = true }
             }
         }
     }
-
 
     Box(
         modifier = Modifier
@@ -61,19 +77,18 @@ fun HomeScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Subtitle Text
             Text(
                 text = "Odaberite način prijave",
                 fontSize = 16.sp,
-                color = Color(0xFFB3A9A1) // Slightly lighter color for subtitle
+                color = Color(0xFFB3A9A1)
             )
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Buttons
+            // Register Button
             Button(
                 onClick = { navController.navigate("register") },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF58845)), // Button color: #f58845
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF58845)),
                 shape = RoundedCornerShape(50),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -85,9 +100,10 @@ fun HomeScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // Login Button
             Button(
                 onClick = { navController.navigate("login") },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF58845)), // Button color: #f58845
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF58845)),
                 shape = RoundedCornerShape(50),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -99,9 +115,13 @@ fun HomeScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // Google Login Button
             Button(
-                onClick = { /* Handle Google Login */ },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF58845)), // Button color: #f58845
+                onClick = {
+                    val signInIntent = googleSignInClient.signInIntent
+                    (context as? Activity)?.startActivityForResult(signInIntent, RC_SIGN_IN)
+                },
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF58845)),
                 shape = RoundedCornerShape(50),
                 modifier = Modifier
                     .fillMaxWidth()
