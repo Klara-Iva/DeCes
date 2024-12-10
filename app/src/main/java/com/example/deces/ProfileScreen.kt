@@ -1,8 +1,10 @@
 package com.example.deces
 
 import android.widget.Toast
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -23,10 +25,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import coil.compose.rememberImagePainter
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -39,6 +44,9 @@ fun Screen5(navController: NavController) {
     val showDialog = remember { mutableStateOf(false) } // Za praćenje stanja dijaloga
     val isDialogOpen = remember { mutableStateOf(false) }
     val newUserName = remember { mutableStateOf("") }
+    var profilePictureUrl by remember { mutableStateOf("") }
+    val isDialogOpen3 = remember { mutableStateOf(false) }
+    val newProfilePictureUrl = remember { mutableStateOf("") }
 
 
     LaunchedEffect(user?.uid) {
@@ -46,6 +54,8 @@ fun Screen5(navController: NavController) {
             firestore.collection("users").document(uid).get()
                 .addOnSuccessListener { documentSnapshot ->
                     userName.value = documentSnapshot.get("name").toString()
+                    profilePictureUrl = documentSnapshot.getString("profilePicture") ?: ""
+
                 }.addOnFailureListener { exception ->
                     Toast.makeText(
                         navController.context,
@@ -118,18 +128,18 @@ fun Screen5(navController: NavController) {
                     auth.currentUser?.let {
                         // Ako je korisnik prijavljen, šaljemo email za promjenu lozinke
                         auth.sendPasswordResetEmail(it.email!!).addOnSuccessListener {
-                                Toast.makeText(
-                                    navController.context,
-                                    "E-mail za promjenu lozinke poslan!",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            }.addOnFailureListener { exception ->
-                                Toast.makeText(
-                                    navController.context,
-                                    "Greška: ${exception.message}",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            }
+                            Toast.makeText(
+                                navController.context,
+                                "E-mail za promjenu lozinke poslan!",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }.addOnFailureListener { exception ->
+                            Toast.makeText(
+                                navController.context,
+                                "Greška: ${exception.message}",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
                     }
                     showDialog.value = false
                 }) {
@@ -142,6 +152,64 @@ fun Screen5(navController: NavController) {
                 }
             })
     }
+
+    if (isDialogOpen3.value) {
+        AlertDialog(
+            onDismissRequest = { isDialogOpen3.value = false },
+            title = { Text(text = "Unesite URL nove profilne slike") },
+            text = {
+                Column {
+                    BasicTextField(
+                        value = newProfilePictureUrl.value,
+                        onValueChange = { newProfilePictureUrl.value = it },
+                        modifier = Modifier
+                            .background(Color.White)
+                            .padding(10.dp)
+                            .fillMaxWidth(),
+                        decorationBox = { innerTextField ->
+                            Box(modifier = Modifier.padding(8.dp)) {
+                                if (newProfilePictureUrl.value.isEmpty()) {
+                                    Text("Unesite URL nove slike", color = Color.Gray)
+                                }
+                                innerTextField()
+                            }
+                        })
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    val uid = user?.uid
+                    if (uid != null && newProfilePictureUrl.value.isNotEmpty()) {
+                        firestore.collection("users").document(uid)
+                            .update("profilePicture", newProfilePictureUrl.value)
+                            .addOnSuccessListener {
+                                profilePictureUrl = newProfilePictureUrl.value
+                                isDialogOpen3.value = false
+                                Toast.makeText(
+                                    navController.context,
+                                    "URL profilne slike ažuriran",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                            .addOnFailureListener { exception ->
+                                Toast.makeText(
+                                    navController.context,
+                                    "Greška pri ažuriranju: ${exception.message}",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                    }
+                }) {
+                    Text("Spremi")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { isDialogOpen3.value = false }) {
+                    Text("Otkaži")
+                }
+            })
+    }
+
 
     Box(
         modifier = Modifier.fillMaxSize()
@@ -175,15 +243,36 @@ fun Screen5(navController: NavController) {
                 modifier = Modifier
                     .size(100.dp)
                     .clip(CircleShape)
-                    .background(color = Color.Gray),
+                    .background(color = Color.Gray)
+                    .pointerInput(Unit) {
+                        detectTapGestures(
+                            onTap = {
+                                isDialogOpen3.value = true
+                            }
+                        )
+                    },
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = Icons.Default.Person,
-                    contentDescription = "Profile Picture",
-                    tint = Color.White,
-                    modifier = Modifier.size(45.dp)
-                )
+
+                if (profilePictureUrl.isNotEmpty()) {
+                    Image(
+                        painter = rememberImagePainter(
+                            profilePictureUrl
+                        ),
+                        contentDescription = "Profile Picture",
+                        modifier = Modifier
+                            .size(100.dp)
+                            .clip(CircleShape),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Default.Person,
+                        contentDescription = "Profile Icon",
+                        modifier = Modifier.size(24.dp),
+                        tint = Color.White
+                    )
+                }
             }
 
             Text(
