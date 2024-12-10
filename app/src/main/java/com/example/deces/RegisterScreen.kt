@@ -137,7 +137,10 @@ fun RegisterScreen(navController: NavController) {
                                     if (currentUser != null) {
                                         // Add user to Firestore
                                         val userData = hashMapOf(
-                                            "name" to name, "email" to email
+                                            "name" to name,
+                                            "email" to email,
+                                            "chosenCity" to "",
+                                            "interests" to emptyList<String>() // Add an empty list for interests
                                         )
                                         firestore.collection("users").document(currentUser.uid)
                                             .set(userData).addOnSuccessListener {
@@ -147,7 +150,7 @@ fun RegisterScreen(navController: NavController) {
                                                     .add(hashMapOf("initialized" to true)) // Example: initialize the collection
                                                     .addOnCompleteListener {
                                                         // Navigate to another screen
-                                                        navController.navigate(BottomNavigationItems.Screen3.route)
+                                                        navController.navigate("chooseCity")
                                                     }
                                             }.addOnFailureListener { e ->
                                                 println("Error adding user: ${e.message}")

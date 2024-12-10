@@ -130,22 +130,23 @@ fun MapScreen(navController: NavController) {
                 LaunchedEffect(Unit) {
                     val db = FirebaseFirestore.getInstance()
                     db.collection("availableCities").get().addOnSuccessListener { result ->
-                            cities = result.map {
-                                val name = it.getString("name") ?: "Unknown"
-                                val lat = it.getDouble("latitude") ?: 0.0
-                                val lng = it.getDouble("longitude") ?: 0.0
-                                val zoom = it.getString("zoom") ?: "13.7f"
-                                City(name, lat, lng, zoom)
-                            }
-                        }.addOnFailureListener { exception ->
-
+                        cities = result.map {
+                            val name = it.getString("name") ?: "Unknown"
+                            val lat = it.getDouble("latitude") ?: 0.0
+                            val lng = it.getDouble("longitude") ?: 0.0
+                            val zoom = it.getString("zoom") ?: "13.7f"
+                            City(name, lat, lng, zoom)
                         }
+                    }.addOnFailureListener { exception ->
+
+                    }
                 }
 
-                Box(
+               Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .zIndex(1f)
+
                 ) {
                     AndroidView(
                         factory = { context ->
@@ -181,6 +182,7 @@ fun MapScreen(navController: NavController) {
                                     }
 
 
+
                                     val uiSettings: UiSettings = googleMap.uiSettings
                                     uiSettings.isZoomControlsEnabled = true
                                     val locations = mutableListOf<MapMarker>()
@@ -196,6 +198,7 @@ fun MapScreen(navController: NavController) {
                                             }
                                         }.addOnCompleteListener {
                                             for (location in locations) {
+
                                                 val originalBitmap = BitmapFactory.decodeResource(context.resources, R.drawable.pin3)
 
                                                 val scaledBitmap = Bitmap.createScaledBitmap(originalBitmap, 57, 100, false)
@@ -205,6 +208,7 @@ fun MapScreen(navController: NavController) {
                                                 val myMarker = googleMap.addMarker(
                                                     MarkerOptions().position(location.cordinates)
                                                         .icon(pinIcon)
+
                                                 )
                                                 myMarker!!.tag = location.id
                                                 markers.add(myMarker)
@@ -226,6 +230,7 @@ fun MapScreen(navController: NavController) {
 
                                                 for (mark in markers) {
                                                     if (marker!!.position == mark?.position) marker!!.tag = mark.tag
+
                                                 }
                                                 googleMap.setOnMapClickListener {
                                                     marker!!.remove()
@@ -236,6 +241,7 @@ fun MapScreen(navController: NavController) {
                                             }
 
                                             googleMap.setOnMarkerClickListener { marker ->
+
                                                 val documentId = marker.tag as? String
                                                 if (documentId != null) {
                                                     navController.navigate("eventDetail/$documentId")
@@ -243,7 +249,6 @@ fun MapScreen(navController: NavController) {
                                                 true
                                             }
                                         }
-
                                 }
                             }
                         }, modifier = Modifier.fillMaxSize()
@@ -253,6 +258,7 @@ fun MapScreen(navController: NavController) {
                         modifier = Modifier
                             .fillMaxSize()
                             .zIndex(2f),
+
                         verticalArrangement = Arrangement.Top
                     ) {
                         Box(
@@ -302,6 +308,7 @@ fun MapScreen(navController: NavController) {
                             .fillMaxWidth()
                             .padding(start = 20.dp, top = 65.dp, end = 20.dp, bottom = 10.dp)
                             .zIndex(3f),
+n
                         contentAlignment = Alignment.TopEnd
                     ) {
                         DropdownMenu(
@@ -313,6 +320,7 @@ fun MapScreen(navController: NavController) {
                                     shape = RoundedCornerShape(4.dp)
                                 )
                                 .clip(RoundedCornerShape(4.dp))
+
                                 .align(Alignment.TopEnd)
                         ) {
                             cities.forEachIndexed { index, city ->
@@ -327,6 +335,7 @@ fun MapScreen(navController: NavController) {
                                                 text = city.name,
                                                 style = MaterialTheme.typography.bodyLarge,
                                                 color = Color.White
+
                                             )
                                             Spacer(modifier = Modifier.width(8.dp))
                                             Icon(
@@ -359,6 +368,7 @@ fun MapScreen(navController: NavController) {
                                         thickness = 1.dp,
                                     )
                                 }
+
                             }
                         }
                     }
