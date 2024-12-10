@@ -1,12 +1,16 @@
 package com.example.deces
 
 import android.Manifest
+import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Camera
 import android.graphics.Canvas
 import android.graphics.Paint
+import android.net.Uri
+import android.provider.Settings
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
@@ -22,6 +26,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -100,11 +105,11 @@ fun MapScreen(navController: NavController) {
         val currentUser = auth.currentUser
         val db = FirebaseFirestore.getInstance()
 
-        val locationPermissionLauncher = rememberLauncherForActivityResult(
-            contract = ActivityResultContracts.RequestPermission(),
-            onResult = { granted ->
-                hasLocationPermission = granted
-            })
+        val locationPermissionLauncher =
+            rememberLauncherForActivityResult(contract = ActivityResultContracts.RequestPermission(),
+                onResult = { granted ->
+                    hasLocationPermission = granted
+                })
 
         LaunchedEffect(key1 = true) {
             if (!hasLocationPermission) {
@@ -180,8 +185,7 @@ fun MapScreen(navController: NavController) {
                                         val success = googleMap.setMapStyle(mapStyleOptions)
                                         if (!success) {
                                             android.util.Log.e(
-                                                "MapStyle",
-                                                "Failed to apply dark style"
+                                                "MapStyle", "Failed to apply dark style"
                                             )
                                         }
                                     } catch (e: Exception) {
@@ -208,15 +212,11 @@ fun MapScreen(navController: NavController) {
                                             for (location in locations) {
 
                                                 val originalBitmap = BitmapFactory.decodeResource(
-                                                    context.resources,
-                                                    R.drawable.pin3
+                                                    context.resources, R.drawable.pin3
                                                 )
 
                                                 val scaledBitmap = Bitmap.createScaledBitmap(
-                                                    originalBitmap,
-                                                    57,
-                                                    100,
-                                                    false
+                                                    originalBitmap, 57, 100, false
                                                 )
 
                                                 val pinIcon =
@@ -325,63 +325,58 @@ fun MapScreen(navController: NavController) {
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(start = 20.dp, top = 65.dp, end = 20.dp, bottom = 10.dp)
-                            .zIndex(3f),
-                        contentAlignment = Alignment.TopEnd
+                            .zIndex(3f), contentAlignment = Alignment.TopEnd
                     ) {
                         DropdownMenu(
                             expanded = isDropDownExpanded.value,
                             onDismissRequest = { isDropDownExpanded.value = false },
                             modifier = Modifier
                                 .background(
-                                    Color(0xFF8A6D57),
-                                    shape = RoundedCornerShape(4.dp)
+                                    Color(0xFF8A6D57), shape = RoundedCornerShape(4.dp)
                                 )
                                 .clip(RoundedCornerShape(4.dp))
                                 .align(Alignment.TopEnd)
                         ) {
                             cities.forEachIndexed { index, city ->
-                                DropdownMenuItem(
-                                    text = {
-                                        Row(
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            horizontalArrangement = Arrangement.Start,
-                                            modifier = Modifier.padding(vertical = 4.dp)
-                                        ) {
-                                            Icon(
-                                                imageVector = Icons.Default.LocationOn,
-                                                contentDescription = null,
-                                                tint = Color.White,
-                                                modifier = Modifier.size(20.dp)
-                                            )
-
-                                            Spacer(modifier = Modifier.width(8.dp))
-
-                                            Text(
-                                                text = city.name,
-                                                style = MaterialTheme.typography.bodyLarge,
-                                                color = Color.White
-
-                                            )
-                                        }
-                                    },
-                                    onClick = {
-                                        isDropDownExpanded.value = false
-                                        itemPosition.value = index
-
-                                        val latitude = city.latitude
-                                        val longitude = city.longitude
-                                        CameraBounds.selectedCityName = city.name
-                                        val zoom = city.zoom
-                                        CameraBounds.setCoordinates(latitude, longitude)
-                                        val cameraPosition = CameraPosition.fromLatLngZoom(
-                                            LatLng(latitude, longitude), zoom.toFloat()
+                                DropdownMenuItem(text = {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.Start,
+                                        modifier = Modifier.padding(vertical = 4.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.LocationOn,
+                                            contentDescription = null,
+                                            tint = Color.White,
+                                            modifier = Modifier.size(20.dp)
                                         )
-                                        CameraBounds.setCameraPosition(cameraPosition)
-                                        db.collection("users").document(currentUser!!.uid)
-                                            .update("chosenCity", city.name)
-                                        navController.navigate(BottomNavigationItems.MapScreen.route)
+
+                                        Spacer(modifier = Modifier.width(8.dp))
+
+                                        Text(
+                                            text = city.name,
+                                            style = MaterialTheme.typography.bodyLarge,
+                                            color = Color.White
+
+                                        )
                                     }
-                                )
+                                }, onClick = {
+                                    isDropDownExpanded.value = false
+                                    itemPosition.value = index
+
+                                    val latitude = city.latitude
+                                    val longitude = city.longitude
+                                    CameraBounds.selectedCityName = city.name
+                                    val zoom = city.zoom
+                                    CameraBounds.setCoordinates(latitude, longitude)
+                                    val cameraPosition = CameraPosition.fromLatLngZoom(
+                                        LatLng(latitude, longitude), zoom.toFloat()
+                                    )
+                                    CameraBounds.setCameraPosition(cameraPosition)
+                                    db.collection("users").document(currentUser!!.uid)
+                                        .update("chosenCity", city.name)
+                                    navController.navigate(BottomNavigationItems.MapScreen.route)
+                                })
                                 if (index != cities.size - 1) {
                                     Divider(
                                         color = Color(0xFF291b11),
@@ -397,16 +392,35 @@ fun MapScreen(navController: NavController) {
             }
 
         } else {
-
-            Text(
-                text = "Permission not granted for accessing location.",
+            Column(
                 modifier = Modifier.fillMaxSize(),
-                textAlign = TextAlign.Center
-            )
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = "Permission not granted for accessing location.",
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Button(onClick = {
+                    openAppSettings(context)
+                }) {
+                    Text(text = "Go to Settings")
+                }
+            }
         }
     }
 }
 
+fun openAppSettings(context: Context) {
+    val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+        data = Uri.parse("package:${context.packageName}")
+    }
+    context.startActivity(intent)
+}
 
 data class MapMarker(
     var id: String, var cordinates: LatLng

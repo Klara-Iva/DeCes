@@ -44,8 +44,7 @@ fun HomeScreen(navController: NavController) {
             context,
             GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestIdToken(context.getString(R.string.default_web_client_id)) // Add Web Client ID from Firebase
-                .requestEmail()
-                .build()
+                .requestEmail().build()
         )
     }
 
@@ -70,9 +69,7 @@ fun HomeScreen(navController: NavController) {
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "Odaberite način prijave",
-                fontSize = 16.sp,
-                color = Color(0xFFB3A9A1)
+                text = "Odaberite način prijave", fontSize = 16.sp, color = Color(0xFFB3A9A1)
             )
 
             Spacer(modifier = Modifier.height(32.dp))

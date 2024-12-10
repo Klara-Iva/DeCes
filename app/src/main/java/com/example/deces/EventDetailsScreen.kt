@@ -336,7 +336,7 @@ fun EventDetailScreen(documentId: String, navController: NavController) {
                                             "description" to (doc.getString("description") ?: ""),
                                             "date" to (doc.getString("date") ?: ""),
 
-                                        )
+                                            )
 
                                     }
                                 }
@@ -346,7 +346,6 @@ fun EventDetailScreen(documentId: String, navController: NavController) {
                             Column(
                                 modifier = Modifier
                                     .fillMaxWidth()
-
                                     .padding(horizontal = 20.dp)
                             ) {
                                 Text(
@@ -357,8 +356,7 @@ fun EventDetailScreen(documentId: String, navController: NavController) {
                                     modifier = Modifier.padding(bottom = 8.dp)
                                 )
                                 reviews.forEach { review ->
-
-                                    val userId = review["user"] as? String
+                                    val userId = review["user"]
                                     var userName by remember { mutableStateOf("Nepoznati korisnik") }
                                     var profilePictureUrl by remember { mutableStateOf("") }
 
@@ -366,8 +364,10 @@ fun EventDetailScreen(documentId: String, navController: NavController) {
                                         userId?.let { id ->
                                             db.collection("users").document(id).get()
                                                 .addOnSuccessListener { userDoc ->
-                                                    userName = userDoc.getString("name") ?: "Nepoznati korisnik"
-                                                    profilePictureUrl = userDoc.getString("profilePicture") ?: ""
+                                                    userName = userDoc.getString("name")
+                                                        ?: "Nepoznati korisnik"
+                                                    profilePictureUrl =
+                                                        userDoc.getString("profilePicture") ?: ""
                                                 }
                                         }
                                     }
@@ -379,7 +379,7 @@ fun EventDetailScreen(documentId: String, navController: NavController) {
                                             .background(Color(0xFF3A2A1E))
                                             .padding(16.dp)
                                     ) {
-                                        Row(){
+                                        Row {
                                             Box(
                                                 contentAlignment = Alignment.Center,
                                                 modifier = Modifier
@@ -393,8 +393,9 @@ fun EventDetailScreen(documentId: String, navController: NavController) {
                                                             profilePictureUrl
                                                         ),
                                                         contentDescription = "Profile Picture",
-                                                        modifier = Modifier.size(40.dp)
-                                                        .clip(CircleShape),
+                                                        modifier = Modifier
+                                                            .size(40.dp)
+                                                            .clip(CircleShape),
                                                         contentScale = ContentScale.Crop
                                                     )
                                                 } else {
@@ -408,39 +409,38 @@ fun EventDetailScreen(documentId: String, navController: NavController) {
                                             }
 
                                             Column(
-                                            modifier = Modifier.padding(start = 10.dp)
-                                        )
-                                        {
-                                            Text(
-                                                text = userName,
-                                                fontWeight = FontWeight.Bold,
-                                                fontSize = 14.sp,
-                                                color = Color.White,
+                                                modifier = Modifier.padding(start = 10.dp)
+                                            ) {
+                                                Text(
+                                                    text = userName,
+                                                    fontWeight = FontWeight.Bold,
+                                                    fontSize = 14.sp,
+                                                    color = Color.White,
 
-                                            )
-                                            Text(
-                                                text = review["date"] ?: "",
-                                                fontSize = 14.sp,
-                                                color = Color.White,
+                                                    )
+                                                Text(
+                                                    text = review["date"] ?: "",
+                                                    fontSize = 14.sp,
+                                                    color = Color.White,
 
-                                            )
-                                            Text(
-                                                text = review["title"] ?: "",
-                                                fontWeight = FontWeight.SemiBold,
-                                                fontSize = 19.sp,
-                                                color = Color.White,
-                                                modifier = Modifier.padding(vertical = 10.dp)
-                                            )
+                                                    )
+                                                Text(
+                                                    text = review["title"] ?: "",
+                                                    fontWeight = FontWeight.SemiBold,
+                                                    fontSize = 19.sp,
+                                                    color = Color.White,
+                                                    modifier = Modifier.padding(vertical = 10.dp)
+                                                )
 
-                                            Text(
-                                                text = review["description"] ?: "",
-                                                fontSize = 12.sp,
-                                                color = Color(0xFFa1a1a1),
-                                                textAlign = TextAlign.Justify
+                                                Text(
+                                                    text = review["description"] ?: "",
+                                                    fontSize = 12.sp,
+                                                    color = Color(0xFFa1a1a1),
+                                                    textAlign = TextAlign.Justify
 
-                                            )
+                                                )
+                                            }
                                         }
-                                     }
                                     }
                                 }
                             }
@@ -478,8 +478,7 @@ fun EventDetailScreen(documentId: String, navController: NavController) {
                                 modifier = Modifier.padding(bottom = 8.dp)
                             )
 
-                            TextField(
-                                value = reviewTitle,
+                            TextField(value = reviewTitle,
                                 onValueChange = { reviewTitle = it },
                                 label = { Text("Naslov") },
                                 modifier = Modifier

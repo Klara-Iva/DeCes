@@ -154,13 +154,11 @@ fun Screen5(navController: NavController) {
     }
 
     if (isDialogOpen3.value) {
-        AlertDialog(
-            onDismissRequest = { isDialogOpen3.value = false },
+        AlertDialog(onDismissRequest = { isDialogOpen3.value = false },
             title = { Text(text = "Unesite URL nove profilne slike") },
             text = {
                 Column {
-                    BasicTextField(
-                        value = newProfilePictureUrl.value,
+                    BasicTextField(value = newProfilePictureUrl.value,
                         onValueChange = { newProfilePictureUrl.value = it },
                         modifier = Modifier
                             .background(Color.White)
@@ -190,8 +188,7 @@ fun Screen5(navController: NavController) {
                                     "URL profilne slike ažuriran",
                                     Toast.LENGTH_SHORT
                                 ).show()
-                            }
-                            .addOnFailureListener { exception ->
+                            }.addOnFailureListener { exception ->
                                 Toast.makeText(
                                     navController.context,
                                     "Greška pri ažuriranju: ${exception.message}",
@@ -239,19 +236,17 @@ fun Screen5(navController: NavController) {
                 .padding(top = 65.dp)
         ) {
             // Profilna slika i korisničko ime
+            //TODO add pencil icon for editing
             Box(
                 modifier = Modifier
                     .size(100.dp)
                     .clip(CircleShape)
                     .background(color = Color.Gray)
                     .pointerInput(Unit) {
-                        detectTapGestures(
-                            onTap = {
-                                isDialogOpen3.value = true
-                            }
-                        )
-                    },
-                contentAlignment = Alignment.Center
+                        detectTapGestures(onTap = {
+                            isDialogOpen3.value = true
+                        })
+                    }, contentAlignment = Alignment.Center
             ) {
 
                 if (profilePictureUrl.isNotEmpty()) {
@@ -269,7 +264,7 @@ fun Screen5(navController: NavController) {
                     Icon(
                         imageVector = Icons.Default.Person,
                         contentDescription = "Profile Icon",
-                        modifier = Modifier.size(24.dp),
+                        modifier = Modifier.size(60.dp),
                         tint = Color.White
                     )
                 }
@@ -295,8 +290,7 @@ fun Screen5(navController: NavController) {
             ) {
                 MenuItem(icon = Icons.Default.Edit,
                     title = "Uredi korisničko ime",
-                    onClick = { isDialogOpen.value = true }
-                )
+                    onClick = { isDialogOpen.value = true })
                 Divider(color = Color(0xFF6a5240), thickness = 1.dp)
                 MenuItem(icon = Icons.Default.Lock,
                     title = "Promijeni lozinku",
@@ -304,7 +298,7 @@ fun Screen5(navController: NavController) {
                 Divider(color = Color(0xFF6a5240), thickness = 1.dp)
                 MenuItem(icon = Icons.Default.Settings,
                     title = "Uredi preference",
-                     onClick={ navController.navigate("changeinterests")}
+                    onClick = { navController.navigate("changeinterests") }
 
 
                 )

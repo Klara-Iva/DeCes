@@ -58,9 +58,7 @@ fun RegisterScreen(navController: NavController) {
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = "Vec imas račun?",
-                    fontSize = 14.sp,
-                    color = Color(0xFFB3A9A1)
+                    text = "Vec imas račun?", fontSize = 14.sp, color = Color(0xFFB3A9A1)
                 )
                 TextButton(onClick = { navController.navigate("login") }) {
                     Text(
@@ -82,8 +80,7 @@ fun RegisterScreen(navController: NavController) {
                     .width(300.dp)
                     .padding(vertical = 8.dp)
                     .background(
-                        Color(0xFF8A6D57),
-                        shape = RoundedCornerShape(50)
+                        Color(0xFF8A6D57), shape = RoundedCornerShape(50)
                     ),
                 colors = TextFieldDefaults.colors(
                     focusedTextColor = Color.White,
@@ -107,8 +104,7 @@ fun RegisterScreen(navController: NavController) {
                     .width(300.dp)
                     .padding(vertical = 8.dp)
                     .background(
-                        Color(0xFF8A6D57),
-                        shape = RoundedCornerShape(50)
+                        Color(0xFF8A6D57), shape = RoundedCornerShape(50)
                     ),
                 colors = TextFieldDefaults.colors(
                     focusedTextColor = Color.White,
@@ -132,8 +128,7 @@ fun RegisterScreen(navController: NavController) {
                     .width(300.dp)
                     .padding(vertical = 8.dp)
                     .background(
-                        Color(0xFF8A6D57),
-                        shape = RoundedCornerShape(50)
+                        Color(0xFF8A6D57), shape = RoundedCornerShape(50)
                     ),
                 colors = TextFieldDefaults.colors(
                     focusedTextColor = Color.White,
@@ -170,8 +165,7 @@ fun RegisterScreen(navController: NavController) {
                 datePickerDialog.show()
             }
 
-            OutlinedTextField(
-                value = birthDate,
+            OutlinedTextField(value = birthDate,
                 onValueChange = {},
                 label = { Text("DATUM ROĐENJA", color = Color.White) },
                 modifier = Modifier
@@ -179,8 +173,7 @@ fun RegisterScreen(navController: NavController) {
                     .padding(vertical = 8.dp)
                     .height(60.dp)
                     .background(
-                        Color(0xFF8A6D57),
-                        shape = RoundedCornerShape(50)
+                        Color(0xFF8A6D57), shape = RoundedCornerShape(50)
                     ),
                 readOnly = true,
                 colors = TextFieldDefaults.colors(
@@ -201,8 +194,7 @@ fun RegisterScreen(navController: NavController) {
                             tint = Color.White
                         )
                     }
-                }
-            )
+                })
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -215,7 +207,9 @@ fun RegisterScreen(navController: NavController) {
                         auth.createUserWithEmailAndPassword(email, password)
                             .addOnCompleteListener { task ->
                                 if (task.isSuccessful) {
-                                    Toast.makeText(context,"Uspješna registracija!",Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(
+                                        context, "Uspješna registracija!", Toast.LENGTH_SHORT
+                                    ).show()
                                     val currentUser = auth.currentUser
                                     if (currentUser != null) {
                                         val userData = hashMapOf(
@@ -244,7 +238,7 @@ fun RegisterScreen(navController: NavController) {
                                 }
                             }
                     } else {
-                        Toast.makeText(context,"Popunite sva polja!",Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "Popunite sva polja!", Toast.LENGTH_SHORT).show()
                         println("Please fill all fields.")
                     }
                 },
@@ -272,19 +266,14 @@ fun DatePickerExample() {
 
     val openDatePicker = {
         val datePickerDialog = DatePickerDialog(
-            context,
-            { _: DatePicker, selectedYear: Int, selectedMonth: Int, selectedDay: Int ->
+            context, { _: DatePicker, selectedYear: Int, selectedMonth: Int, selectedDay: Int ->
                 date = "$selectedDay/${selectedMonth + 1}/$selectedYear" // Format the date
-            },
-            year,
-            month,
-            day
+            }, year, month, day
         )
         datePickerDialog.show()
     }
 
-    OutlinedTextField(
-        value = date,
+    OutlinedTextField(value = date,
         onValueChange = {},
         label = { Text("Datum rođenja", color = Color.White) },
         modifier = Modifier
@@ -301,6 +290,5 @@ fun DatePickerExample() {
                     tint = Color.White
                 )
             }
-        }
-    )
+        })
 }

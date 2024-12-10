@@ -43,16 +43,14 @@ fun ChooseCityScreen(navController: NavController) {
 
     // Fetch city names from Firestore
     LaunchedEffect(Unit) {
-        firestore.collection("availableCities").get()
-            .addOnSuccessListener { documents ->
-                for (document in documents) {
-                    val name = document.getString("name")
-                    if (name != null) cities.add(name)
-                }
+        firestore.collection("availableCities").get().addOnSuccessListener { documents ->
+            for (document in documents) {
+                val name = document.getString("name")
+                if (name != null) cities.add(name)
             }
-            .addOnFailureListener {
-                println("Error fetching cities: ${it.message}")
-            }
+        }.addOnFailureListener {
+            println("Error fetching cities: ${it.message}")
+        }
     }
 
     // UI Layout
@@ -99,20 +97,14 @@ fun ChooseCityScreen(navController: NavController) {
                     )
                 }
 
-                DropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false }
-                ) {
+                DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                     cities.forEach { city ->
-                        DropdownMenuItem(
-                            onClick = {
-                                selectedCity = city
-                                expanded = false
-                            },
-                            text = {
-                                Text(text = city, color = Color.Black)
-                            }
-                        )
+                        DropdownMenuItem(onClick = {
+                            selectedCity = city
+                            expanded = false
+                        }, text = {
+                            Text(text = city, color = Color.Black)
+                        })
                     }
                 }
             }
@@ -128,14 +120,12 @@ fun ChooseCityScreen(navController: NavController) {
 
                         if (currentUser != null) {
                             firestore.collection("users").document(currentUser.uid)
-                                .update("chosenCity", selectedCity)
-                                .addOnSuccessListener {
-                                    CameraBounds.selectedCityName=selectedCity
+                                .update("chosenCity", selectedCity).addOnSuccessListener {
+                                    CameraBounds.selectedCityName = selectedCity
                                     CameraBounds.getCoordinatesFromBase(currentUser.uid)
                                     println("Chosen city saved successfully: $selectedCity")
                                     navController.navigate("chooseInterests")
-                                }
-                                .addOnFailureListener { e ->
+                                }.addOnFailureListener { e ->
                                     println("Error saving chosen city: ${e.message}")
                                 }
                         } else {

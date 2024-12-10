@@ -130,7 +130,7 @@ fun ChooseInterestsScreen(navController: NavController) {
                         firestore.collection("users").document(userId)
                             .update("interests", selectedInterests).addOnSuccessListener {
                                 println("Interests saved successfully!")
-                                navController.navigate("home")
+                                navController.navigate("eventshomeroute")
                             }.addOnFailureListener { e ->
                                 println("Error saving interests: ${e.message}")
                             }
@@ -139,7 +139,7 @@ fun ChooseInterestsScreen(navController: NavController) {
                     }
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF58845)),
-               shape=  RoundedCornerShape(50),
+                shape = RoundedCornerShape(50),
                 modifier = Modifier
             ) {
                 Text(

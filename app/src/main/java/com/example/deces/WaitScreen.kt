@@ -31,16 +31,14 @@ fun WaitScreen(navController: NavController) {
     LaunchedEffect(currentUser) {
         if (currentUser != null) {
             val db = FirebaseFirestore.getInstance()
-            db.collection("users").document(currentUser.uid).get()
-                .addOnSuccessListener { result ->
-                    selectedCityName = result["chosenCity"].toString()
+            db.collection("users").document(currentUser.uid).get().addOnSuccessListener { result ->
+                selectedCityName = result["chosenCity"].toString()
+            }.addOnCompleteListener {
+                navController.navigate("eventshomeroute") {
+                    popUpTo("eventshomeroute") { inclusive = true }
+                    launchSingleTop = true
                 }
-                .addOnCompleteListener {
-                    navController.navigate("eventshomeroute") {
-                        popUpTo("eventshomeroute") { inclusive = true }
-                        launchSingleTop = true
-                    }
-                }
+            }
         } else {
             navController.navigate("home") {
                 popUpTo("home") { inclusive = true }

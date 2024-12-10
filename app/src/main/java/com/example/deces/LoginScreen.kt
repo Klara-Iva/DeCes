@@ -53,14 +53,12 @@ fun LoginScreen(navController: NavController) {
                     color = Color(0xFFB3A9A1),
                 )
 
-                Text(
-                    text = " Registriraj se",
+                Text(text = " Registriraj se",
                     fontSize = 14.sp,
                     color = Color(0xFFf58845),
                     modifier = Modifier.clickable {
                         navController.navigate("Register")
-                    }
-                )
+                    })
             }
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -75,12 +73,10 @@ fun LoginScreen(navController: NavController) {
                     .width(300.dp)
                     .padding(vertical = 8.dp)
                     .border(
-                        width = 0.dp,
-                        color = Color.Transparent
+                        width = 0.dp, color = Color.Transparent
                     )
                     .background(
-                        Color(0xFF8A6D57),
-                        shape = RoundedCornerShape(51)
+                        Color(0xFF8A6D57), shape = RoundedCornerShape(51)
                     ),
                 colors = TextFieldDefaults.colors(
                     focusedTextColor = Color.White,
@@ -105,12 +101,10 @@ fun LoginScreen(navController: NavController) {
                     .width(300.dp)
                     .padding(vertical = 8.dp)
                     .border(
-                        width = 0.dp,
-                        color = Color.Transparent
+                        width = 0.dp, color = Color.Transparent
                     )
                     .background(
-                        Color(0xFF8A6D57),
-                        shape = RoundedCornerShape(51)
+                        Color(0xFF8A6D57), shape = RoundedCornerShape(51)
                     ),
                 colors = TextFieldDefaults.colors(
                     focusedTextColor = Color.White,
@@ -135,7 +129,7 @@ fun LoginScreen(navController: NavController) {
                         auth.signInWithEmailAndPassword(email, password)
                             .addOnCompleteListener { task ->
                                 if (task.isSuccessful) {
-                                    navController.navigate("EventsHomeScreen")
+                                    navController.navigate("waitscreenroute")
                                 } else {
                                     val errorMessage =
                                         task.exception?.localizedMessage ?: "Login failed"

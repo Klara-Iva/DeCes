@@ -22,6 +22,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.common.api.ApiException
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
+
 private const val RC_SIGN_IN = 9001
 
 
@@ -31,8 +32,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             DecesTheme {
-                val navController: NavHostController =
-                    rememberNavController()
+                val navController: NavHostController = rememberNavController()
                 val currentRoute by navController.currentBackStackEntryAsState()
                 var isBottomBarVisible by remember { mutableStateOf(true) }
                 val onBottomBarVisibilityChanged: (Boolean) -> Unit = { isVisible ->
@@ -53,6 +53,7 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == RC_SIGN_IN) {
@@ -69,13 +70,12 @@ class MainActivity : ComponentActivity() {
     private fun firebaseAuthWithGoogle(idToken: String) {
         val auth = FirebaseAuth.getInstance()
         val credential = GoogleAuthProvider.getCredential(idToken, null)
-        auth.signInWithCredential(credential)
-            .addOnCompleteListener(this) { task ->
-                if (task.isSuccessful) {
-                    println("Google Sign-In successful!")
-                } else {
-                    println("Google Sign-In failed: ${task.exception?.message}")
-                }
+        auth.signInWithCredential(credential).addOnCompleteListener(this) { task ->
+            if (task.isSuccessful) {
+                println("Google Sign-In successful!")
+            } else {
+                println("Google Sign-In failed: ${task.exception?.message}")
             }
+        }
     }
 }
