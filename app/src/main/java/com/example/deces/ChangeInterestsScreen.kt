@@ -38,17 +38,17 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.accompanist.flowlayout.FlowRow
 import com.google.accompanist.flowlayout.MainAxisAlignment
 
-
 @Composable
-fun ChooseInterestsScreen(navController: NavController) {
+fun ChangeInterestsScreen(navController: NavController) {
     val firestore = FirebaseFirestore.getInstance()
     val auth = FirebaseAuth.getInstance()
     val userId = auth.currentUser?.uid // Get the currently logged-in user's ID
     val allInterests = remember { mutableStateListOf<String>() } // All available interests
     val selectedInterests = remember { mutableStateListOf<String>() } // User-selected interests
 
-    // Fetch all interests from Firestore
+    // Fetch all interests from Firestore and the user's interests
     LaunchedEffect(Unit) {
+        // Fetch all available interests
         firestore.collection("all_interests").document("interests").get()
             .addOnSuccessListener { document ->
                 val interests = document.get("interests") as? List<String>
@@ -58,6 +58,21 @@ fun ChooseInterestsScreen(navController: NavController) {
             }.addOnFailureListener {
                 println("Error fetching interests: ${it.message}")
             }
+
+        // Fetch the user's selected interests
+        if (userId != null) {
+            firestore.collection("users").document(userId).get()
+                .addOnSuccessListener { document ->
+                    val userInterests = document.get("interests") as? List<String>
+                    if (userInterests != null) {
+                        // Add the user's selected interests to the list
+                        selectedInterests.addAll(userInterests)
+                    }
+                }
+                .addOnFailureListener {
+                    println("Error fetching user interests: ${it.message}")
+                }
+        }
     }
 
     // UI Layout
@@ -83,7 +98,7 @@ fun ChooseInterestsScreen(navController: NavController) {
 
             // Subtitle
             Text(
-                text = "Personaliziraj događaje odabirom interesa",
+                text = "Personaliziraj događaje izmjenom interesa",
                 fontSize = 16.sp,
                 color = Color(0xFFB3A9A1)
             )
@@ -95,9 +110,8 @@ fun ChooseInterestsScreen(navController: NavController) {
                 mainAxisAlignment = MainAxisAlignment.Center,
                 modifier = Modifier.wrapContentWidth(),
                 mainAxisSpacing = 8.dp,
-                crossAxisSpacing = 8.dp,
-
-                ) {
+                crossAxisSpacing = 8.dp
+            ) {
                 allInterests.forEach { interest ->
                     Button(
                         onClick = {
@@ -120,7 +134,6 @@ fun ChooseInterestsScreen(navController: NavController) {
                 }
             }
 
-
             Spacer(modifier = Modifier.height(24.dp))
 
             // Finish Registration Button
@@ -130,7 +143,7 @@ fun ChooseInterestsScreen(navController: NavController) {
                         firestore.collection("users").document(userId)
                             .update("interests", selectedInterests).addOnSuccessListener {
                                 println("Interests saved successfully!")
-                                navController.navigate("home")
+                                navController.popBackStack()
                             }.addOnFailureListener { e ->
                                 println("Error saving interests: ${e.message}")
                             }
@@ -139,11 +152,11 @@ fun ChooseInterestsScreen(navController: NavController) {
                     }
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF58845)),
-               shape=  RoundedCornerShape(50),
+                shape = RoundedCornerShape(50),
                 modifier = Modifier
             ) {
                 Text(
-                    text = "Završi registraciju",
+                    text = "Spremi",
                     fontSize = 16.sp,
                     color = Color.White,
                     modifier = Modifier.padding(horizontal = 30.dp, vertical = 4.dp)

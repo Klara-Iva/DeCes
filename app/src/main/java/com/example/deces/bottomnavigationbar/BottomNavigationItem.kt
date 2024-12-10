@@ -14,27 +14,27 @@ sealed class BottomNavigationItems(
     val icon: ImageVector? = null
 ) {
     object MapScreen : BottomNavigationItems(
-        route = "MapScreen",
+        route = "maproute",
         title = "Map",
         icon = Icons.Outlined.LocationOn
     )
-    object Screen2 : BottomNavigationItems(
-        route = "screen2",
+    object CalendarScreen : BottomNavigationItems(
+        route = "calendarroute",
         title = "Calendar",
         icon = Icons.Outlined.DateRange
     )
-    object Screen3 : BottomNavigationItems(
-        route = "screen3",
+    object EventsHomeScreen : BottomNavigationItems(
+        route = "eventshomeroute",
         title = "Home",
         icon = Icons.Outlined.Home
     )
-    object Screen4 : BottomNavigationItems(
-        route = "screen4",
+    object FavouritesScreen : BottomNavigationItems(
+        route = "favouritesroute",
         title = "Favourites",
         icon = Icons.Outlined.Favorite
     )
-    object Screen5 : BottomNavigationItems(
-        route = "screen5",
+    object ProfileScreen : BottomNavigationItems(
+        route = "profileroute",
         title = "Profile",
         icon = Icons.Outlined.AccountCircle
     )

@@ -51,7 +51,7 @@ fun HomeScreen(navController: NavController) {
     val currentUser = auth.currentUser
     LaunchedEffect(currentUser) {
         if (currentUser != null) {
-            navController.navigate(BottomNavigationItems.Screen3.route) {
+            navController.navigate("eventshomeroute") {
                 popUpTo("home") { inclusive = true }
             }
         }

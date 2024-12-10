@@ -302,7 +302,7 @@ fun EventDetailScreen(documentId: String, navController: NavController) {
                                         CameraBounds.camerapostion = cameraPosition
                                         CameraBounds.showSpecifiedLocationOnMap = true
                                         CameraBounds.setCoordinates(latitude, longitude)
-                                        navController.navigate("MapScreen") {
+                                        navController.navigate("maproute") {
                                             popUpTo("MapScreen") {
                                                 saveState = false
                                             }
@@ -314,7 +314,7 @@ fun EventDetailScreen(documentId: String, navController: NavController) {
                                 shape = RoundedCornerShape(50)
                             ) {
                                 Text(
-                                    text = "Find on map", color = Color.Black
+                                    text = "Prikaži na karti", color = Color.Black
                                 )
                             }
                         }
@@ -490,6 +490,10 @@ fun EventDetailScreen(documentId: String, navController: NavController) {
                                         shape = RoundedCornerShape(8.dp)
                                     ),
                                 colors = TextFieldDefaults.colors(
+                                    focusedTextColor = Color.White,
+                                    unfocusedTextColor = Color.White,
+                                    focusedLabelColor = Color.Gray,
+                                    unfocusedLabelColor = Color.Gray,
                                     focusedContainerColor = Color.Transparent,
                                     unfocusedContainerColor = Color.Transparent,
                                     unfocusedIndicatorColor = Color.Transparent,
@@ -515,6 +519,10 @@ fun EventDetailScreen(documentId: String, navController: NavController) {
                                         shape = RoundedCornerShape(8.dp)
                                     ),
                                 colors = TextFieldDefaults.colors(
+                                    focusedTextColor = Color.White,
+                                    unfocusedTextColor = Color.White,
+                                    focusedLabelColor = Color.Gray,
+                                    unfocusedLabelColor = Color.Gray,
                                     focusedContainerColor = Color.Transparent,
                                     unfocusedContainerColor = Color.Transparent,
                                     unfocusedIndicatorColor = Color.Transparent,

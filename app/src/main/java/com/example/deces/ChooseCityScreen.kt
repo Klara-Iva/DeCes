@@ -127,12 +127,12 @@ fun ChooseCityScreen(navController: NavController) {
                         val currentUser = auth.currentUser
 
                         if (currentUser != null) {
-                            // Save the selectedCity to Firestore under the current user's document
                             firestore.collection("users").document(currentUser.uid)
                                 .update("chosenCity", selectedCity)
                                 .addOnSuccessListener {
+                                    CameraBounds.selectedCityName=selectedCity
+                                    CameraBounds.getCoordinatesFromBase(currentUser.uid)
                                     println("Chosen city saved successfully: $selectedCity")
-                                    // Navigate to the next screen after saving
                                     navController.navigate("chooseInterests")
                                 }
                                 .addOnFailureListener { e ->

@@ -8,6 +8,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.deces.AllEventsScreen
 import com.example.deces.CalendarScreen
+import com.example.deces.ChangeInterestsScreen
 import com.example.deces.ChooseCityScreen
 import com.example.deces.ChooseInterestsScreen
 import com.example.deces.EventDetailScreen
@@ -22,23 +23,23 @@ import com.example.deces.Screen5
 fun NavigationGraph(navController: NavHostController, onBottomBarVisibilityChanged: (Boolean) -> Unit) {
     NavHost(navController, startDestination = "home") {
 
-        composable(BottomNavigationItems.Screen3.route) {
+        composable("eventshomeroute") {
             onBottomBarVisibilityChanged(true)
             AllEventsScreen(navController)
         }
-        composable(BottomNavigationItems.Screen2.route) {
+        composable("calendarroute") {
             onBottomBarVisibilityChanged(true)
             CalendarScreen()
         }
-        composable(BottomNavigationItems.MapScreen.route) {
+        composable("maproute") {
             onBottomBarVisibilityChanged(true)
             MapScreen(navController)
         }
-        composable(BottomNavigationItems.Screen4.route) {
+        composable("favouritesroute") {
             onBottomBarVisibilityChanged(true)
             FavouritesScreen(navController)
         }
-        composable(BottomNavigationItems.Screen5.route) {
+        composable("profileroute") {
             onBottomBarVisibilityChanged(true)
             Screen5(navController)
         }
@@ -76,6 +77,10 @@ fun NavigationGraph(navController: NavHostController, onBottomBarVisibilityChang
             onBottomBarVisibilityChanged(false)
             ChooseInterestsScreen(navController = navController)
 
+        }
+        composable("changeinterests") {
+            onBottomBarVisibilityChanged(false)
+            ChangeInterestsScreen(navController = navController)
         }
 
     }

@@ -1,34 +1,46 @@
 package com.example.deces
 
+import android.app.DatePickerDialog
+import android.widget.DatePicker
+import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.deces.bottomnavigationbar.BottomNavigationItems
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import java.text.SimpleDateFormat
+import java.util.*
 
 @Composable
 fun RegisterScreen(navController: NavController) {
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var birthDate by remember { mutableStateOf("") }
     val firestore = FirebaseFirestore.getInstance()
+    val context = LocalContext.current
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF291B11)) // Background color: #291b11
+            .background(Color(0xFF291B11))
     ) {
         Column(
             modifier = Modifier
@@ -38,27 +50,23 @@ fun RegisterScreen(navController: NavController) {
         ) {
             // Title Text
             Text(
-                text = "Kreiraj novi racun!",
+                text = "Kreiraj novi račun",
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.White
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Subtitle Row
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = "Vec imas racun?",
-                    fontSize = 16.sp,
-                    color = Color(0xFFB3A9A1) // Slightly lighter color for subtitle
+                    text = "Vec imas račun?",
+                    fontSize = 14.sp,
+                    color = Color(0xFFB3A9A1)
                 )
-                TextButton(onClick = { /* Handle navigation or action */ }) {
+                TextButton(onClick = { navController.navigate("login") }) {
                     Text(
                         text = "Prijavi se",
-                        fontSize = 16.sp,
-                        color = Color(0xFFF58845), // Link color
-                        fontWeight = FontWeight.Bold
+                        fontSize = 14.sp,
+                        color = Color(0xFFF58845),
                     )
                 }
             }
@@ -66,60 +74,134 @@ fun RegisterScreen(navController: NavController) {
             Spacer(modifier = Modifier.height(32.dp))
 
             // Name Input
-            OutlinedTextField(value = name,
+            OutlinedTextField(
+                value = name,
                 onValueChange = { name = it },
-                label = { Text("IME", color = Color.White) },// Label inside the TextField
+                label = { Text("IME", color = Color.White) },
                 modifier = Modifier
-                    .width(280.dp)
+                    .width(300.dp)
                     .padding(vertical = 8.dp)
                     .background(
-                        Color(0xFF8A6D57), shape = RoundedCornerShape(51)
-                    ), // Background color and rounded corners
+                        Color(0xFF8A6D57),
+                        shape = RoundedCornerShape(50)
+                    ),
+                colors = TextFieldDefaults.colors(
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White,
+                    focusedLabelColor = Color.White,
+                    unfocusedLabelColor = Color.White,
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    focusedIndicatorColor = Color.Transparent,
+                ),
                 singleLine = true,
-                textStyle = TextStyle(color = Color.White)
             )
 
             // Email Input
-            OutlinedTextField(value = email,
+            OutlinedTextField(
+                value = email,
                 onValueChange = { email = it },
-                label = { Text("EMAIL", color = Color.White) },// Label inside the TextField
+                label = { Text("EMAIL", color = Color.White) },
                 modifier = Modifier
-                    .width(280.dp)
+                    .width(300.dp)
                     .padding(vertical = 8.dp)
                     .background(
-                        Color(0xFF8A6D57), shape = RoundedCornerShape(51)
-                    ), // Background color and rounded corners
+                        Color(0xFF8A6D57),
+                        shape = RoundedCornerShape(50)
+                    ),
+                colors = TextFieldDefaults.colors(
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White,
+                    focusedLabelColor = Color.White,
+                    unfocusedLabelColor = Color.White,
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    focusedIndicatorColor = Color.Transparent,
+                ),
                 singleLine = true,
-                textStyle = TextStyle(color = Color.White)
             )
 
             // Password Input
-            OutlinedTextField(value = password,
+            OutlinedTextField(
+                value = password,
                 onValueChange = { password = it },
-                label = { Text("LOZINKA", color = Color.White) },// Label inside the TextField
+                label = { Text("LOZINKA", color = Color.White) },
                 modifier = Modifier
-                    .width(280.dp)
+                    .width(300.dp)
                     .padding(vertical = 8.dp)
                     .background(
-                        Color(0xFF8A6D57), shape = RoundedCornerShape(51)
-                    ), // Background color and rounded corners
+                        Color(0xFF8A6D57),
+                        shape = RoundedCornerShape(50)
+                    ),
+                colors = TextFieldDefaults.colors(
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White,
+                    focusedLabelColor = Color.White,
+                    unfocusedLabelColor = Color.White,
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    focusedIndicatorColor = Color.Transparent,
+                ),
                 singleLine = true,
-                textStyle = TextStyle(color = Color.White)
+                visualTransformation = PasswordVisualTransformation()
+
             )
 
-            // Birth Date Input
-            OutlinedTextField(value = birthDate, onValueChange = { birthDate = it }, label = {
-                Text(
-                    "DATUM RODJENJA", color = Color.White
+            var birthDate by remember { mutableStateOf("") }
+            val context = LocalContext.current
+            val calendar = Calendar.getInstance()
+            val year = calendar.get(Calendar.YEAR)
+            val month = calendar.get(Calendar.MONTH)
+            val day = calendar.get(Calendar.DAY_OF_MONTH)
+
+            val openDatePicker = {
+                val datePickerDialog = DatePickerDialog(
+                    context,
+                    { _: DatePicker, selectedYear: Int, selectedMonth: Int, selectedDay: Int ->
+                        birthDate = "$selectedDay.${selectedMonth + 1}.$selectedYear"
+                    },
+                    year,
+                    month,
+                    day
                 )
-            },// Label inside the TextField
+                datePickerDialog.show()
+            }
+
+            OutlinedTextField(
+                value = birthDate,
+                onValueChange = {},
+                label = { Text("DATUM ROĐENJA", color = Color.White) },
                 modifier = Modifier
-                    .width(280.dp)
+                    .width(300.dp)
                     .padding(vertical = 8.dp)
+                    .height(60.dp)
                     .background(
-                        Color(0xFF8A6D57), shape = RoundedCornerShape(51)
-                    ), // Background color and rounded corners
-                singleLine = true, textStyle = TextStyle(color = Color.White)
+                        Color(0xFF8A6D57),
+                        shape = RoundedCornerShape(50)
+                    ),
+                readOnly = true,
+                colors = TextFieldDefaults.colors(
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White,
+                    focusedLabelColor = Color.White,
+                    unfocusedLabelColor = Color.White,
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    focusedIndicatorColor = Color.Transparent,
+                ),
+                trailingIcon = {
+                    IconButton(onClick = openDatePicker) {
+                        Icon(
+                            imageVector = Icons.Default.DateRange,
+                            contentDescription = "Date Picker",
+                            tint = Color.White
+                        )
+                    }
+                }
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -129,27 +211,26 @@ fun RegisterScreen(navController: NavController) {
                 onClick = {
                     println("Name: $name, Email: $email, Password: $password, BirthDate: $birthDate")
                     val auth = FirebaseAuth.getInstance()
-                    if (email.isNotEmpty() && password.isNotEmpty() && name.isNotEmpty()) {
+                    if (email.isNotEmpty() && password.isNotEmpty() && name.isNotEmpty() && birthDate.isNotEmpty()) {
                         auth.createUserWithEmailAndPassword(email, password)
                             .addOnCompleteListener { task ->
                                 if (task.isSuccessful) {
+                                    Toast.makeText(context,"Uspješna registracija!",Toast.LENGTH_SHORT).show()
                                     val currentUser = auth.currentUser
                                     if (currentUser != null) {
-                                        // Add user to Firestore
                                         val userData = hashMapOf(
                                             "name" to name,
                                             "email" to email,
                                             "chosenCity" to "",
-                                            "interests" to emptyList<String>() // Add an empty list for interests
+                                            "interests" to emptyList<String>(),
+                                            "birthdate" to birthDate.toString()
                                         )
                                         firestore.collection("users").document(currentUser.uid)
                                             .set(userData).addOnSuccessListener {
-                                                // Create an empty "reviews" subcollection
                                                 firestore.collection("users")
                                                     .document(currentUser.uid).collection("reviews")
-                                                    .add(hashMapOf("initialized" to true)) // Example: initialize the collection
+                                                    .add(hashMapOf("initialized" to true))
                                                     .addOnCompleteListener {
-                                                        // Navigate to another screen
                                                         navController.navigate("chooseCity")
                                                     }
                                             }.addOnFailureListener { e ->
@@ -163,6 +244,7 @@ fun RegisterScreen(navController: NavController) {
                                 }
                             }
                     } else {
+                        Toast.makeText(context,"Popunite sva polja!",Toast.LENGTH_SHORT).show()
                         println("Please fill all fields.")
                     }
                 },
@@ -170,12 +252,55 @@ fun RegisterScreen(navController: NavController) {
                 shape = RoundedCornerShape(50),
                 modifier = Modifier
                     .width(280.dp)
-                    .fillMaxWidth()
                     .height(50.dp)
             ) {
                 Text("Registracija", fontSize = 16.sp, color = Color.White)
             }
-
         }
     }
+}
+
+
+@Composable
+fun DatePickerExample() {
+    var date by remember { mutableStateOf("") }
+    val context = LocalContext.current
+    val calendar = Calendar.getInstance()
+    val year = calendar.get(Calendar.YEAR)
+    val month = calendar.get(Calendar.MONTH)
+    val day = calendar.get(Calendar.DAY_OF_MONTH)
+
+    val openDatePicker = {
+        val datePickerDialog = DatePickerDialog(
+            context,
+            { _: DatePicker, selectedYear: Int, selectedMonth: Int, selectedDay: Int ->
+                date = "$selectedDay/${selectedMonth + 1}/$selectedYear" // Format the date
+            },
+            year,
+            month,
+            day
+        )
+        datePickerDialog.show()
+    }
+
+    OutlinedTextField(
+        value = date,
+        onValueChange = {},
+        label = { Text("Datum rođenja", color = Color.White) },
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(56.dp)
+            .padding(16.dp),
+        readOnly = true, // Prevent text input directly
+
+        trailingIcon = {
+            IconButton(onClick = openDatePicker) {
+                Icon(
+                    imageVector = Icons.Default.DateRange,
+                    contentDescription = "Date Picker",
+                    tint = Color.White
+                )
+            }
+        }
+    )
 }

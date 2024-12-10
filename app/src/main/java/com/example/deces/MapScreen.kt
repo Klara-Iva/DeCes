@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Camera
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.util.Log
@@ -95,6 +96,9 @@ fun MapScreen(navController: NavController) {
                 ) == PackageManager.PERMISSION_GRANTED
             )
         }
+        val auth = FirebaseAuth.getInstance()
+        val currentUser = auth.currentUser
+        val db = FirebaseFirestore.getInstance()
 
         val locationPermissionLauncher = rememberLauncherForActivityResult(
             contract = ActivityResultContracts.RequestPermission(),
@@ -128,7 +132,7 @@ fun MapScreen(navController: NavController) {
                 var cities by remember { mutableStateOf<List<City>>(emptyList()) }
 
                 LaunchedEffect(Unit) {
-                    val db = FirebaseFirestore.getInstance()
+
                     db.collection("availableCities").get().addOnSuccessListener { result ->
                         cities = result.map {
                             val name = it.getString("name") ?: "Unknown"
@@ -137,12 +141,10 @@ fun MapScreen(navController: NavController) {
                             val zoom = it.getString("zoom") ?: "13.7f"
                             City(name, lat, lng, zoom)
                         }
-                    }.addOnFailureListener { exception ->
-
                     }
                 }
 
-               Box(
+                Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .zIndex(1f)
@@ -169,18 +171,22 @@ fun MapScreen(navController: NavController) {
                                     googleMap.isMyLocationEnabled = true
 
                                     try {
-                                        val styleInputStream: InputStream = resources.openRawResource(R.raw.dark_map_style)
-                                        val styleString = styleInputStream.bufferedReader().use { it.readText() }
+                                        val styleInputStream: InputStream =
+                                            resources.openRawResource(R.raw.dark_map_style)
+                                        val styleString =
+                                            styleInputStream.bufferedReader().use { it.readText() }
                                         val mapStyleOptions = MapStyleOptions(styleString)
 
                                         val success = googleMap.setMapStyle(mapStyleOptions)
                                         if (!success) {
-                                            android.util.Log.e("MapStyle", "Failed to apply dark style")
+                                            android.util.Log.e(
+                                                "MapStyle",
+                                                "Failed to apply dark style"
+                                            )
                                         }
                                     } catch (e: Exception) {
                                         android.util.Log.e("MapStyle", "Error loading map style", e)
                                     }
-
 
 
                                     val uiSettings: UiSettings = googleMap.uiSettings
@@ -191,19 +197,30 @@ fun MapScreen(navController: NavController) {
                                         .addOnSuccessListener { documents ->
                                             for (document in documents.documents) {
                                                 val coordinates = LatLng(
-                                                    document.data!!["latitude"].toString().toDouble(),
-                                                    document.data!!["longitude"].toString().toDouble()
+                                                    document.data!!["latitude"].toString()
+                                                        .toDouble(),
+                                                    document.data!!["longitude"].toString()
+                                                        .toDouble()
                                                 )
                                                 locations.add(MapMarker(document.id, coordinates))
                                             }
                                         }.addOnCompleteListener {
                                             for (location in locations) {
 
-                                                val originalBitmap = BitmapFactory.decodeResource(context.resources, R.drawable.pin3)
+                                                val originalBitmap = BitmapFactory.decodeResource(
+                                                    context.resources,
+                                                    R.drawable.pin3
+                                                )
 
-                                                val scaledBitmap = Bitmap.createScaledBitmap(originalBitmap, 57, 100, false)
+                                                val scaledBitmap = Bitmap.createScaledBitmap(
+                                                    originalBitmap,
+                                                    57,
+                                                    100,
+                                                    false
+                                                )
 
-                                                val pinIcon = BitmapDescriptorFactory.fromBitmap(scaledBitmap)
+                                                val pinIcon =
+                                                    BitmapDescriptorFactory.fromBitmap(scaledBitmap)
 
                                                 val myMarker = googleMap.addMarker(
                                                     MarkerOptions().position(location.cordinates)
@@ -229,7 +246,8 @@ fun MapScreen(navController: NavController) {
                                                 )
 
                                                 for (mark in markers) {
-                                                    if (marker!!.position == mark?.position) marker!!.tag = mark.tag
+                                                    if (marker!!.position == mark?.position) marker!!.tag =
+                                                        mark.tag
 
                                                 }
                                                 googleMap.setOnMapClickListener {
@@ -267,7 +285,7 @@ fun MapScreen(navController: NavController) {
                                 .padding(20.dp)
                                 .zIndex(3f)
                                 .background(Color.Transparent),
-                        ){
+                        ) {
                             Card(
                                 shape = RoundedCornerShape(12.dp),
                                 modifier = Modifier
@@ -294,7 +312,7 @@ fun MapScreen(navController: NavController) {
                                     )
                                     Spacer(modifier = Modifier.width(4.dp))
                                     Icon(
-                                        imageVector = if (isDropDownExpanded.value) Icons.Default.KeyboardArrowDown else Icons.Default.ArrowDropDown,
+                                        imageVector = if (isDropDownExpanded.value) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
                                         contentDescription = null,
                                         tint = Color.White
                                     )
@@ -308,7 +326,6 @@ fun MapScreen(navController: NavController) {
                             .fillMaxWidth()
                             .padding(start = 20.dp, top = 65.dp, end = 20.dp, bottom = 10.dp)
                             .zIndex(3f),
-
                         contentAlignment = Alignment.TopEnd
                     ) {
                         DropdownMenu(
@@ -320,7 +337,6 @@ fun MapScreen(navController: NavController) {
                                     shape = RoundedCornerShape(4.dp)
                                 )
                                 .clip(RoundedCornerShape(4.dp))
-
                                 .align(Alignment.TopEnd)
                         ) {
                             cities.forEachIndexed { index, city ->
@@ -331,18 +347,20 @@ fun MapScreen(navController: NavController) {
                                             horizontalArrangement = Arrangement.Start,
                                             modifier = Modifier.padding(vertical = 4.dp)
                                         ) {
-                                            Text(
-                                                text = city.name,
-                                                style = MaterialTheme.typography.bodyLarge,
-                                                color = Color.White
-
-                                            )
-                                            Spacer(modifier = Modifier.width(8.dp))
                                             Icon(
                                                 imageVector = Icons.Default.LocationOn,
                                                 contentDescription = null,
                                                 tint = Color.White,
                                                 modifier = Modifier.size(20.dp)
+                                            )
+
+                                            Spacer(modifier = Modifier.width(8.dp))
+
+                                            Text(
+                                                text = city.name,
+                                                style = MaterialTheme.typography.bodyLarge,
+                                                color = Color.White
+
                                             )
                                         }
                                     },
@@ -359,6 +377,8 @@ fun MapScreen(navController: NavController) {
                                             LatLng(latitude, longitude), zoom.toFloat()
                                         )
                                         CameraBounds.setCameraPosition(cameraPosition)
+                                        db.collection("users").document(currentUser!!.uid)
+                                            .update("chosenCity", city.name)
                                         navController.navigate(BottomNavigationItems.MapScreen.route)
                                     }
                                 )

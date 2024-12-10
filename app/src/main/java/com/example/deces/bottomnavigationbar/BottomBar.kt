@@ -4,8 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -14,7 +12,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
@@ -30,11 +27,11 @@ fun BottomBar(
     modifier: Modifier = Modifier
 ) {
     val screens = listOf(
-        BottomNavigationItems.Screen3,
-        BottomNavigationItems.Screen2,
+        BottomNavigationItems.EventsHomeScreen,
+        BottomNavigationItems.CalendarScreen,
         BottomNavigationItems.MapScreen,
-        BottomNavigationItems.Screen4,
-        BottomNavigationItems.Screen5
+        BottomNavigationItems.FavouritesScreen,
+        BottomNavigationItems.ProfileScreen
     )
 
     Box(

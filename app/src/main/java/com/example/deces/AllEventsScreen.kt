@@ -15,7 +15,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -50,12 +53,16 @@ import java.util.Date
 
 @Composable
 fun AllEventsScreen(navController: NavController) {
+
+    //related to map screen, must be initialized here
+    val auth = FirebaseAuth.getInstance()
+    val currentUser = auth.currentUser
+    CameraBounds.getCoordinatesFromBase(currentUser!!.uid)
+    //
+
     var searchQuery by remember { mutableStateOf("") }
     var locations by remember { mutableStateOf(listOf<Location>()) }
     var allLocations by remember { mutableStateOf(listOf<Location>()) }
-    var favoriteLocations by remember { mutableStateOf(listOf<String>()) }
-    val userId = FirebaseAuth.getInstance().currentUser?.uid
-
 
     LaunchedEffect(Unit) {
         fetchLocationsFromFirestore { result ->
@@ -64,12 +71,11 @@ fun AllEventsScreen(navController: NavController) {
         }
     }
 
-
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFf8f7f7))
-            .absolutePadding(5.dp, 5.dp, 5.dp, 0.dp)
+            .background(Color(0xFF291b11))
+
     ) {
         TextField(
             maxLines = 1, value = searchQuery, onValueChange = {
@@ -88,14 +94,12 @@ fun AllEventsScreen(navController: NavController) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(2), modifier = Modifier.fillMaxSize()
+        LazyHorizontalGrid(
+            rows  = GridCells.Fixed(1), modifier = Modifier.fillMaxSize()
         ) {
             items(locations) { location ->
-                val isFavorite = favoriteLocations.contains(location.id)
-                LocationCard(location, navController, isFavorite, userId) { updatedFavorites ->
-                    favoriteLocations = updatedFavorites
-                }
+                LocationCard(location, navController)
+
             }
         }
     }
@@ -105,39 +109,8 @@ fun AllEventsScreen(navController: NavController) {
 fun LocationCard(
     location: Location,
     navController: NavController,
-    isFavorite: Boolean,
-    userId: String?,
-    onFavoriteUpdated: (List<String>) -> Unit
 ) {
     var animationScale by remember { mutableFloatStateOf(1f) }
-    val animatedScale by animateFloatAsState(
-        targetValue = animationScale, animationSpec = tween(durationMillis = 100)
-    )
-    val db = Firebase.firestore
-
-    var localIsFavorite by remember { mutableStateOf(isFavorite) }
-
-    fun toggleFavorite() {
-        userId?.let { uid ->
-            val userRef = db.collection("users").document(uid)
-
-            db.runTransaction { transaction ->
-                val snapshot = transaction.get(userRef)
-                val favorites =
-                    snapshot.get("favourites") as? MutableList<String> ?: mutableListOf()
-                if (localIsFavorite) {
-                    favorites.remove(location.id)
-                } else {
-                    favorites.add(location.id)
-                }
-                transaction.update(userRef, "favourites", favorites)
-            }.addOnSuccessListener {
-                localIsFavorite = !localIsFavorite
-                animationScale = 1.2f
-
-            }
-        }
-    }
     LaunchedEffect(animationScale) {
         if (animationScale > 1f) {
             kotlinx.coroutines.delay(100)
@@ -147,20 +120,20 @@ fun LocationCard(
 
 
     Card(
-
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(5.dp),
         modifier = Modifier
             .fillMaxWidth()
-
             .padding(8.dp)
-            .height(250.dp)
+            .wrapContentHeight()
             .clickable {
                 navController.navigate("eventDetail/${location.id}")
-            }) {
-        Column(modifier = Modifier.background(Color(0xFFFFFFFF))) {
+            })
+    {
+        Row(
+            modifier = Modifier     .background(Color(0xFF382315))
 
-
+        ) {
             Box {
                 Image(
                     painter = rememberAsyncImagePainter(location.photo1),
@@ -168,57 +141,40 @@ fun LocationCard(
                     contentDescription = location.name,
                     modifier = Modifier
                         .height(120.dp)
-                        .fillMaxWidth()
+                        .width(120.dp)
                 )
 
             }
-            Column(modifier = Modifier.padding(8.dp)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        location.name, maxLines = 2,
 
-                        fontSize = 16.sp, textAlign = TextAlign.Center
-                    )
-                }
-                Spacer(modifier = Modifier.height(10.dp))
-                Text(
-                    location.description,
-                    maxLines = 5,
-                    overflow = TextOverflow.Ellipsis,
-                    color = Color(0xFFFa1a1a1),
-                    lineHeight = 16.sp,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(3.dp)
-
-
-                )
-            }
+            Text(
+                location.name, maxLines = 2,
+                fontSize = 24.sp, textAlign = TextAlign.Start
+            )
         }
+
     }
 }
 
 fun fetchLocationsFromFirestore(onResult: (List<Location>) -> Unit) {
     val firestore = FirebaseFirestore.getInstance()
     firestore.collection("events").get().addOnSuccessListener { documents ->
-            val locations = documents.mapNotNull { doc ->
-                val name = doc.getString("name")
-                val imageUrl = doc.getString("photo1")
-                val description = doc.getString("description")
-                val startdate = doc.getTimestamp("startdate")?.toDate() ?: Date()
-                val dateFormat = SimpleDateFormat("dd.MM.yyyy.") // Format: 08.12.2024.
-                val formattedDate = dateFormat.format(startdate)
-                if (name != null && imageUrl != null && description != null) {
-                    Location(doc.id, name, description, imageUrl, formattedDate)
-                } else {
-                    null
-                }
+        val locations = documents.mapNotNull { doc ->
+            val name = doc.getString("name")
+            val imageUrl = doc.getString("photo1")
+            val description = doc.getString("description")
+            val startdate = doc.getTimestamp("startdate")?.toDate() ?: Date()
+            val dateFormat = SimpleDateFormat("dd.MM.yyyy.") // Format: 08.12.2024.
+            val formattedDate = dateFormat.format(startdate)
+            if (name != null && imageUrl != null && description != null) {
+                Location(doc.id, name, description, imageUrl, formattedDate)
+            } else {
+                null
             }
-            onResult(locations)
-        }.addOnFailureListener {
-            onResult(emptyList())
         }
+        onResult(locations)
+    }.addOnFailureListener {
+        onResult(emptyList())
+    }
 }
 
 

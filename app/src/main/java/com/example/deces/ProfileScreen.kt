@@ -295,14 +295,19 @@ fun Screen5(navController: NavController) {
             ) {
                 MenuItem(icon = Icons.Default.Edit,
                     title = "Uredi korisničko ime",
-                    onClick = { isDialogOpen.value = true } // Otvara popup
+                    onClick = { isDialogOpen.value = true }
                 )
                 Divider(color = Color(0xFF6a5240), thickness = 1.dp)
                 MenuItem(icon = Icons.Default.Lock,
                     title = "Promijeni lozinku",
                     onClick = { showDialog.value = true })
                 Divider(color = Color(0xFF6a5240), thickness = 1.dp)
-                MenuItem(icon = Icons.Default.Settings, title = "Uredi preference")
+                MenuItem(icon = Icons.Default.Settings,
+                    title = "Uredi preference",
+                     onClick={ navController.navigate("changeinterests")}
+
+
+                )
                 Divider(color = Color(0xFF6a5240), thickness = 1.dp)
                 MenuItem(icon = Icons.Default.LocationOn, title = "Uredi lokaciju")
                 Divider(color = Color(0xFF6a5240), thickness = 1.dp)
@@ -326,7 +331,7 @@ fun MenuItem(icon: ImageVector, title: String, onClick: (() -> Unit)? = null) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 5.dp)
-            .clickable { onClick?.invoke() }, // Pozivanje onClick funkcije
+            .clickable { onClick?.invoke() },
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {

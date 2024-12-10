@@ -39,33 +39,18 @@ class MainActivity : ComponentActivity() {
         setContent {
             DecesTheme {
                 val navController: NavHostController =
-                    rememberNavController() // Kreiraj navController
-
-                // Provjerava koji je trenutni ekran
+                    rememberNavController()
                 val currentRoute by navController.currentBackStackEntryAsState()
-
-                // Varijabla za upravljanje vidljivošću BottomBar-a
                 var isBottomBarVisible by remember { mutableStateOf(true) }
-
-                // Postavljanje funkcije za promjenu vidljivosti BottomBar-a
                 val onBottomBarVisibilityChanged: (Boolean) -> Unit = { isVisible ->
                     isBottomBarVisible = isVisible
                 }
-
-                // Postavlja uvjet za prikazivanje BottomBar-a
-                isBottomBarVisible = when (currentRoute?.destination?.route) {
-                    BottomNavigationItems.MapScreen.route -> false // Sakrij BottomBar na MapScreen
-                    else -> true // Prikazuj BottomBar na ostalim ekranima
-                }
-
                 Scaffold(bottomBar = {
-                    // Ako je BottomBar vidljiv, prikazat ćemo ga
                     if (isBottomBarVisible) {
                         BottomBar(navController = navController, state = true)
                     }
                 }) { paddingValues ->
                     Box(modifier = Modifier.padding(paddingValues)) {
-                        // Prosljeđivanje funkcije za upravljanje vidljivošću BottomBar-a
                         NavigationGraph(
                             navController = navController,
                             onBottomBarVisibilityChanged = onBottomBarVisibilityChanged
@@ -101,19 +86,3 @@ class MainActivity : ComponentActivity() {
             }
     }
 }
-
-@Composable
-fun Screen3() {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .wrapContentSize(Alignment.Center)
-    ) {
-        Text(
-            text = "Screen 333"
-        )
-    }
-}
-
-
-
