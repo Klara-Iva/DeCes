@@ -8,9 +8,12 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.deces.AllEventsScreen
 import com.example.deces.CalendarScreen
+import com.example.deces.ChooseCityScreen
+import com.example.deces.ChooseInterestsScreen
 import com.example.deces.EventDetailScreen
 import com.example.deces.FavouritesScreen
 import com.example.deces.HomeScreen
+import com.example.deces.LoginScreen
 import com.example.deces.MapScreen
 import com.example.deces.RegisterScreen
 
@@ -61,6 +64,21 @@ fun NavigationGraph(navController: NavHostController, onBottomBarVisibilityChang
         composable("register") {
             onBottomBarVisibilityChanged(false)
             RegisterScreen(navController = navController)
+
+        }
+        composable("login") {
+            onBottomBarVisibilityChanged(false)
+            LoginScreen(navController = navController)
+
+        }
+        composable("chooseCity") {
+            onBottomBarVisibilityChanged(false)
+            ChooseCityScreen(navController = navController)
+
+        }
+        composable("chooseInterests") {
+            onBottomBarVisibilityChanged(false)
+            ChooseInterestsScreen(navController = navController)
 
         }
 
