@@ -1,7 +1,6 @@
 package com.example.deces
 
 import android.content.Intent
-import androidx.compose.material3.Text
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
@@ -16,14 +15,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.navigation.compose.rememberNavController
 import com.example.deces.ui.theme.DecesTheme
-import androidx.compose.runtime.Composable
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.ui.Alignment
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.deces.bottomnavigationbar.BottomBar
-import com.example.deces.bottomnavigationbar.BottomNavigationItems
 import com.example.deces.bottomnavigationbar.NavigationGraph
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.common.api.ApiException

@@ -1,5 +1,6 @@
 package com.example.deces.bottomnavigationbar
 
+import WaitScreen
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -21,7 +22,7 @@ import com.example.deces.Screen5
 
 @Composable
 fun NavigationGraph(navController: NavHostController, onBottomBarVisibilityChanged: (Boolean) -> Unit) {
-    NavHost(navController, startDestination = "home") {
+    NavHost(navController, startDestination = "waitscreenroute") {
 
         composable("eventshomeroute") {
             onBottomBarVisibilityChanged(true)
@@ -82,6 +83,9 @@ fun NavigationGraph(navController: NavHostController, onBottomBarVisibilityChang
             onBottomBarVisibilityChanged(false)
             ChangeInterestsScreen(navController = navController)
         }
-
+        composable("waitscreenroute") {
+            onBottomBarVisibilityChanged(false)
+            WaitScreen(navController = navController)
+        }
     }
 }

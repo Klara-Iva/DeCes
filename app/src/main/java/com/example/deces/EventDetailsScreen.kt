@@ -69,6 +69,7 @@ import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlin.math.round
 import kotlin.math.roundToInt
 
 
@@ -709,7 +710,10 @@ fun RatingSection(
                                 val updatedData = mapOf(
                                     "ratingSum" to ratingSum,
                                     "ratingCount" to ratingCount,
-                                    "rating" to if (ratingCount > 0) ratingSum / ratingCount else 0.0
+                                    "rating" to if (ratingCount > 0) {
+                                        val average = ratingSum / ratingCount
+                                        (round(average * 100) / 100)
+                                    } else 0.0
                                 )
 
                                 eventRef.update(updatedData).addOnSuccessListener {

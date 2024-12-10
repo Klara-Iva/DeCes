@@ -1,6 +1,7 @@
 package com.example.deces
 
 import android.app.Activity
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,7 +15,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -24,17 +24,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.deces.bottomnavigationbar.BottomNavigationItems
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
-import com.google.firebase.auth.FirebaseAuth
+import kotlin.system.exitProcess
+
 private const val RC_SIGN_IN = 9001
 
 @Composable
 fun HomeScreen(navController: NavController) {
-
-    val auth = FirebaseAuth.getInstance()
     val context = LocalContext.current
+
+    BackHandler {
+        exitProcess(0)
+    }
 
     // Configure Google Sign-In
     val googleSignInClient = remember {
@@ -45,16 +47,6 @@ fun HomeScreen(navController: NavController) {
                 .requestEmail()
                 .build()
         )
-    }
-
-    // Check if user is already logged in
-    val currentUser = auth.currentUser
-    LaunchedEffect(currentUser) {
-        if (currentUser != null) {
-            navController.navigate("eventshomeroute") {
-                popUpTo("home") { inclusive = true }
-            }
-        }
     }
 
     Box(

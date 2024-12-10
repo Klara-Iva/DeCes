@@ -181,7 +181,8 @@ fun fetchFavoriteLocations(favoriteIds: List<String>, callback: (List<Location>)
                     name = it.getString("name") ?: "",
                     description = it.getString("description") ?: "",
                     photo1 = it.getString("photo1") ?: "",
-                    startdate = formattedDate
+                    startdate = formattedDate,
+                    rating = it.getDouble("rating") ?: 0.0
                 )
 
                 locations.add(location)
