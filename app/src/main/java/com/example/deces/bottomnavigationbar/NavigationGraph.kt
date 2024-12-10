@@ -78,7 +78,5 @@ fun NavigationGraph(navController: NavHostController, onBottomBarVisibilityChang
 
         }
 
-        }
-
     }
 }
