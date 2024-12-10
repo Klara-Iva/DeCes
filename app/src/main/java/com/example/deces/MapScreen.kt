@@ -2,6 +2,11 @@ package com.example.deces
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Canvas
+import android.graphics.Paint
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -33,6 +38,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CardElevation
+import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -45,7 +51,9 @@ import androidx.compose.material3.TextField
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import android.graphics.Color as AndroidColor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
@@ -66,6 +74,7 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.Marker
 import com.google.firebase.auth.FirebaseAuth
+import java.io.InputStream
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -133,11 +142,11 @@ fun MapScreen(navController: NavController) {
                     }
                 }
 
-                //TODO widths and aligment not correct
-                Box(
+               Box(
                     modifier = Modifier
-                        .fillMaxSize() // Pruža mapu preko celog ekrana
-                        .zIndex(1f) // Mapa ostaje u osnovi
+                        .fillMaxSize()
+                        .zIndex(1f)
+
                 ) {
                     AndroidView(
                         factory = { context ->
@@ -159,28 +168,19 @@ fun MapScreen(navController: NavController) {
 
                                     googleMap.isMyLocationEnabled = true
 
-                                    googleMap.setMapStyle(
-                                        MapStyleOptions(
-                                            """
-                                [
-                                    {
-                                        "featureType": "poi",
-                                        "elementType": "all",
-                                        "stylers": [
-                                            { "visibility": "off" }
-                                        ]
-                                    },
-                                    {
-                                        "featureType": "road",
-                                        "elementType": "geometry",
-                                        "stylers": [
-                                            { "visibility": "simplified" }
-                                        ]
+                                    try {
+                                        val styleInputStream: InputStream = resources.openRawResource(R.raw.dark_map_style)
+                                        val styleString = styleInputStream.bufferedReader().use { it.readText() }
+                                        val mapStyleOptions = MapStyleOptions(styleString)
+
+                                        val success = googleMap.setMapStyle(mapStyleOptions)
+                                        if (!success) {
+                                            android.util.Log.e("MapStyle", "Failed to apply dark style")
+                                        }
+                                    } catch (e: Exception) {
+                                        android.util.Log.e("MapStyle", "Error loading map style", e)
                                     }
-                                ]
-                                """.trimIndent()
-                                        )
-                                    )
+
 
 
                                     val uiSettings: UiSettings = googleMap.uiSettings
@@ -198,17 +198,23 @@ fun MapScreen(navController: NavController) {
                                             }
                                         }.addOnCompleteListener {
                                             for (location in locations) {
+
+                                                val originalBitmap = BitmapFactory.decodeResource(context.resources, R.drawable.pin3)
+
+                                                val scaledBitmap = Bitmap.createScaledBitmap(originalBitmap, 57, 100, false)
+
+                                                val pinIcon = BitmapDescriptorFactory.fromBitmap(scaledBitmap)
+
                                                 val myMarker = googleMap.addMarker(
-                                                    MarkerOptions().position(
-                                                        location.cordinates
-                                                    )
+                                                    MarkerOptions().position(location.cordinates)
+                                                        .icon(pinIcon)
+
                                                 )
                                                 myMarker!!.tag = location.id
                                                 markers.add(myMarker)
                                             }
 
                                             if (CameraBounds.showSpecifiedLocationOnMap) {
-
                                                 marker = googleMap.addMarker(
                                                     MarkerOptions().position(
                                                         LatLng(
@@ -219,14 +225,11 @@ fun MapScreen(navController: NavController) {
                                                         BitmapDescriptorFactory.defaultMarker(
                                                             BitmapDescriptorFactory.HUE_AZURE
                                                         )
-                                                    ).title("Its here!")
-
-
+                                                    ).title("It's here!")
                                                 )
 
                                                 for (mark in markers) {
-                                                    if (marker!!.position == mark?.position) marker!!.tag =
-                                                        mark.tag
+                                                    if (marker!!.position == mark?.position) marker!!.tag = mark.tag
 
                                                 }
                                                 googleMap.setOnMapClickListener {
@@ -235,10 +238,7 @@ fun MapScreen(navController: NavController) {
 
                                                 CameraBounds.showSpecifiedLocationOnMap = false
                                                 marker?.showInfoWindow()
-
                                             }
-
-
 
                                             googleMap.setOnMarkerClickListener { marker ->
 
@@ -248,8 +248,6 @@ fun MapScreen(navController: NavController) {
                                                 }
                                                 true
                                             }
-
-
                                         }
                                 }
                             }
@@ -260,7 +258,7 @@ fun MapScreen(navController: NavController) {
                         modifier = Modifier
                             .fillMaxSize()
                             .zIndex(2f),
-                        horizontalAlignment = Alignment.End,
+
                         verticalArrangement = Arrangement.Top
                     ) {
                         Box(
@@ -269,7 +267,6 @@ fun MapScreen(navController: NavController) {
                                 .padding(20.dp)
                                 .zIndex(3f)
                                 .background(Color.Transparent),
-                            contentAlignment = Alignment.TopEnd
                         ){
                             Card(
                                 shape = RoundedCornerShape(12.dp),
@@ -285,7 +282,7 @@ fun MapScreen(navController: NavController) {
                             ) {
                                 Row(
                                     modifier = Modifier
-                                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                                        .padding(horizontal = 16.dp, vertical = 8.dp)
                                         .wrapContentWidth(),
                                     horizontalArrangement = Arrangement.Center,
                                     verticalAlignment = Alignment.CenterVertically
@@ -293,24 +290,25 @@ fun MapScreen(navController: NavController) {
                                     Text(
                                         text = CameraBounds.selectedCityName,
                                         style = MaterialTheme.typography.bodyLarge,
-                                        color = Color.White // Bijela boja teksta
+                                        color = Color.White
                                     )
                                     Spacer(modifier = Modifier.width(4.dp))
                                     Icon(
                                         imageVector = if (isDropDownExpanded.value) Icons.Default.KeyboardArrowDown else Icons.Default.ArrowDropDown,
                                         contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.primary
+                                        tint = Color.White
                                     )
                                 }
                             }
                         }
                     }
+
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(50.dp)
-                            .zIndex(3f)
-                            .offset(x = 20.dp, y = 35.dp),
+                            .padding(start = 20.dp, top = 65.dp, end = 20.dp, bottom = 10.dp)
+                            .zIndex(3f),
+n
                         contentAlignment = Alignment.TopEnd
                     ) {
                         DropdownMenu(
@@ -318,9 +316,11 @@ fun MapScreen(navController: NavController) {
                             onDismissRequest = { isDropDownExpanded.value = false },
                             modifier = Modifier
                                 .background(
-                                    MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
-                                    shape = RoundedCornerShape(12.dp)
+                                    Color(0xFF8A6D57),
+                                    shape = RoundedCornerShape(4.dp)
                                 )
+                                .clip(RoundedCornerShape(4.dp))
+
                                 .align(Alignment.TopEnd)
                         ) {
                             cities.forEachIndexed { index, city ->
@@ -334,13 +334,14 @@ fun MapScreen(navController: NavController) {
                                             Text(
                                                 text = city.name,
                                                 style = MaterialTheme.typography.bodyLarge,
-                                                color = MaterialTheme.colorScheme.onSurface
+                                                color = Color.White
+
                                             )
                                             Spacer(modifier = Modifier.width(8.dp))
                                             Icon(
                                                 imageVector = Icons.Default.LocationOn,
                                                 contentDescription = null,
-                                                tint = MaterialTheme.colorScheme.primary,
+                                                tint = Color.White,
                                                 modifier = Modifier.size(20.dp)
                                             )
                                         }
@@ -361,6 +362,13 @@ fun MapScreen(navController: NavController) {
                                         navController.navigate(BottomNavigationItems.MapScreen.route)
                                     }
                                 )
+                                if (index != cities.size - 1) {
+                                    Divider(
+                                        color = Color(0xFF291b11),
+                                        thickness = 1.dp,
+                                    )
+                                }
+
                             }
                         }
                     }
