@@ -16,11 +16,13 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
@@ -29,6 +31,7 @@ import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CardElevation
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -42,11 +45,13 @@ import androidx.compose.material3.TextField
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.zIndex
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import com.example.deces.bottomnavigationbar.BottomNavigationItems
@@ -116,142 +121,47 @@ fun MapScreen(navController: NavController) {
                 LaunchedEffect(Unit) {
                     val db = FirebaseFirestore.getInstance()
                     db.collection("availableCities").get().addOnSuccessListener { result ->
-                            cities = result.map {
-                                val name = it.getString("name") ?: "Unknown"
-                                val lat = it.getDouble("latitude") ?: 0.0
-                                val lng = it.getDouble("longitude") ?: 0.0
-                                val zoom = it.getString("zoom") ?: "13.7f"
-                                City(name, lat, lng, zoom)
-                            }
-                        }.addOnFailureListener { exception ->
-
+                        cities = result.map {
+                            val name = it.getString("name") ?: "Unknown"
+                            val lat = it.getDouble("latitude") ?: 0.0
+                            val lng = it.getDouble("longitude") ?: 0.0
+                            val zoom = it.getString("zoom") ?: "13.7f"
+                            City(name, lat, lng, zoom)
                         }
-                }
+                    }.addOnFailureListener { exception ->
 
-                //TODO widths and aligment not correct
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(20.dp),
-                    horizontalAlignment = Alignment.End,
-                    verticalArrangement = Arrangement.Top
-                ) {
-                    Box(
-                        contentAlignment = Alignment.TopEnd
-                    ) {
-
-                        Card(shape = RoundedCornerShape(12.dp),
-                            modifier = Modifier
-                                .widthIn(min = 150.dp)
-                                .align(Alignment.TopEnd)
-                                .clickable {
-                                    isDropDownExpanded.value = true
-                                }
-                                .background(MaterialTheme.colorScheme.surface)) {
-                            Row(
-                                modifier = Modifier
-                                    .padding(16.dp)
-                                    .fillMaxWidth(),
-                                horizontalArrangement = Arrangement.End,
-                                verticalAlignment = Alignment.Top
-                            ) {
-                                Text(
-                                    text = CameraBounds.selectedCityName,
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Icon(
-                                    imageVector = if (isDropDownExpanded.value) Icons.Default.KeyboardArrowDown else Icons.Default.ArrowDropDown,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
-                            }
-                        }
-
-                        DropdownMenu(
-
-                            expanded = isDropDownExpanded.value,
-                            onDismissRequest = { isDropDownExpanded.value = false },
-                            modifier = Modifier
-                                .fillMaxWidth() // Postavljamo širinu dropdowna na 200dp
-
-                                .background(
-                                    MaterialTheme.colorScheme.surface, RoundedCornerShape(12.dp)
-                                )
-                        ) {
-                            cities.forEachIndexed { index, city ->
-                                DropdownMenuItem(text = {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.End,
-                                        modifier = Modifier.padding(vertical = 4.dp)
-                                    ) {
-                                        Text(
-
-                                            text = city.name,
-                                            style = MaterialTheme.typography.bodyLarge,
-                                            color = MaterialTheme.colorScheme.onSurface
-                                        )
-                                        Spacer(modifier = Modifier.width(8.dp))
-                                        Icon(
-                                            imageVector = Icons.Default.LocationOn,
-                                            contentDescription = null,
-                                            tint = MaterialTheme.colorScheme.primary,
-                                            modifier = Modifier.size(20.dp)
-                                        )
-                                    }
-                                },
-                                    onClick = {
-                                        isDropDownExpanded.value = false
-                                        itemPosition.value = index
-
-                                        val latitude = city.latitude
-                                        val longitude = city.longitude
-                                        CameraBounds.selectedCityName = city.name
-                                        val zoom = city.zoom
-                                        CameraBounds.setCoordinates(latitude, longitude)
-                                        val cameraPosition = CameraPosition.fromLatLngZoom(
-                                            LatLng(latitude, longitude), zoom.toFloat()
-                                        )
-                                        CameraBounds.setCameraPosition(cameraPosition)
-                                        navController.navigate(BottomNavigationItems.MapScreen.route)
-                                    },
-                                    modifier = Modifier
-                                        .background(MaterialTheme.colorScheme.surface)
-                                        .align(Alignment.End)
-                                )
-                            }
-                        }
                     }
                 }
 
-
-
-
-                AndroidView(
-                    factory = { context ->
-                        MapView(context).apply {
-                            onCreate(null)
-                            onResume()
-                            getMapAsync { googleMap ->
-                                googleMap.moveCamera(
-                                    CameraUpdateFactory.newCameraPosition(
-                                        CameraBounds.getCameraPosition()
+                //TODO widths and aligment not correct
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize() // Pruža mapu preko celog ekrana
+                        .zIndex(1f) // Mapa ostaje u osnovi
+                ) {
+                    AndroidView(
+                        factory = { context ->
+                            MapView(context).apply {
+                                onCreate(null)
+                                onResume()
+                                getMapAsync { googleMap ->
+                                    googleMap.moveCamera(
+                                        CameraUpdateFactory.newCameraPosition(
+                                            CameraBounds.getCameraPosition()
+                                        )
                                     )
-                                )
-                                googleMap.setOnCameraMoveListener {
-                                    CameraBounds.setCameraPosition(
-                                        googleMap.cameraPosition
-                                    )
-                                }
+                                    googleMap.setOnCameraMoveListener {
+                                        CameraBounds.setCameraPosition(
+                                            googleMap.cameraPosition
+                                        )
+                                    }
 
 
-                                googleMap.isMyLocationEnabled = true
+                                    googleMap.isMyLocationEnabled = true
 
-                                googleMap.setMapStyle(
-                                    MapStyleOptions(
-                                        """
+                                    googleMap.setMapStyle(
+                                        MapStyleOptions(
+                                            """
                                 [
                                     {
                                         "featureType": "poi",
@@ -269,82 +179,193 @@ fun MapScreen(navController: NavController) {
                                     }
                                 ]
                                 """.trimIndent()
+                                        )
                                     )
-                                )
 
 
-                                val uiSettings: UiSettings = googleMap.uiSettings
-                                uiSettings.isZoomControlsEnabled = true
-                                val locations = mutableListOf<MapMarker>()
+                                    val uiSettings: UiSettings = googleMap.uiSettings
+                                    uiSettings.isZoomControlsEnabled = true
+                                    val locations = mutableListOf<MapMarker>()
 
-                                FirebaseFirestore.getInstance().collection("events").get()
-                                    .addOnSuccessListener { documents ->
-                                        for (document in documents.documents) {
-                                            val coordinates = LatLng(
-                                                document.data!!["latitude"].toString().toDouble(),
-                                                document.data!!["longitude"].toString().toDouble()
-                                            )
-                                            locations.add(MapMarker(document.id, coordinates))
-                                        }
-                                    }.addOnCompleteListener {
-                                        for (location in locations) {
-                                            val myMarker = googleMap.addMarker(
-                                                MarkerOptions().position(
-                                                    location.cordinates
+                                    FirebaseFirestore.getInstance().collection("events").get()
+                                        .addOnSuccessListener { documents ->
+                                            for (document in documents.documents) {
+                                                val coordinates = LatLng(
+                                                    document.data!!["latitude"].toString().toDouble(),
+                                                    document.data!!["longitude"].toString().toDouble()
                                                 )
-                                            )
-                                            myMarker!!.tag = location.id
-                                            markers.add(myMarker)
-                                        }
-
-                                        if (CameraBounds.showSpecifiedLocationOnMap) {
-
-                                            marker = googleMap.addMarker(
-                                                MarkerOptions().position(
-                                                    LatLng(
-                                                        CameraBounds.latitude,
-                                                        CameraBounds.longitude
+                                                locations.add(MapMarker(document.id, coordinates))
+                                            }
+                                        }.addOnCompleteListener {
+                                            for (location in locations) {
+                                                val myMarker = googleMap.addMarker(
+                                                    MarkerOptions().position(
+                                                        location.cordinates
                                                     )
-                                                ).icon(
-                                                    BitmapDescriptorFactory.defaultMarker(
-                                                        BitmapDescriptorFactory.HUE_AZURE
-                                                    )
-                                                ).title("Its here!")
-
-
-                                            )
-
-                                            for (mark in markers) {
-                                                if (marker!!.position == mark?.position) marker!!.tag =
-                                                    mark.tag
-
-                                            }
-                                            googleMap.setOnMapClickListener {
-                                                marker!!.remove()
+                                                )
+                                                myMarker!!.tag = location.id
+                                                markers.add(myMarker)
                                             }
 
-                                            CameraBounds.showSpecifiedLocationOnMap = false
-                                            marker?.showInfoWindow()
+                                            if (CameraBounds.showSpecifiedLocationOnMap) {
+
+                                                marker = googleMap.addMarker(
+                                                    MarkerOptions().position(
+                                                        LatLng(
+                                                            CameraBounds.latitude,
+                                                            CameraBounds.longitude
+                                                        )
+                                                    ).icon(
+                                                        BitmapDescriptorFactory.defaultMarker(
+                                                            BitmapDescriptorFactory.HUE_AZURE
+                                                        )
+                                                    ).title("Its here!")
+
+
+                                                )
+
+                                                for (mark in markers) {
+                                                    if (marker!!.position == mark?.position) marker!!.tag =
+                                                        mark.tag
+
+                                                }
+                                                googleMap.setOnMapClickListener {
+                                                    marker!!.remove()
+                                                }
+
+                                                CameraBounds.showSpecifiedLocationOnMap = false
+                                                marker?.showInfoWindow()
+
+                                            }
+
+
+
+                                            googleMap.setOnMarkerClickListener { marker ->
+
+                                                val documentId = marker.tag as? String
+                                                if (documentId != null) {
+                                                    navController.navigate("eventDetail/$documentId")
+                                                }
+                                                true
+                                            }
+
 
                                         }
+                                }
+                            }
+                        }, modifier = Modifier.fillMaxSize()
+                    )
 
-
-
-                                        googleMap.setOnMarkerClickListener { marker ->
-
-                                            val documentId = marker.tag as? String
-                                            if (documentId != null) {
-                                                navController.navigate("eventDetail/$documentId")
-                                            }
-                                            true
-                                        }
-
-
-                                    }
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .zIndex(2f),
+                        horizontalAlignment = Alignment.End,
+                        verticalArrangement = Arrangement.Top
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(20.dp)
+                                .zIndex(3f)
+                                .background(Color.Transparent),
+                            contentAlignment = Alignment.TopEnd
+                        ){
+                            Card(
+                                shape = RoundedCornerShape(12.dp),
+                                modifier = Modifier
+                                    .wrapContentWidth()
+                                    .clickable {
+                                        isDropDownExpanded.value = true
+                                    },
+                                colors = CardDefaults.cardColors(
+                                    containerColor = Color(0xFF291B11)
+                                ),
+                                elevation = CardDefaults.cardElevation(0.dp)
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                                        .wrapContentWidth(),
+                                    horizontalArrangement = Arrangement.Center,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = CameraBounds.selectedCityName,
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        color = Color.White // Bijela boja teksta
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Icon(
+                                        imageVector = if (isDropDownExpanded.value) Icons.Default.KeyboardArrowDown else Icons.Default.ArrowDropDown,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
+                                }
                             }
                         }
-                    }, modifier = Modifier.fillMaxSize()
-                )
+                    }
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(50.dp)
+                            .zIndex(3f)
+                            .offset(x = 20.dp, y = 35.dp),
+                        contentAlignment = Alignment.TopEnd
+                    ) {
+                        DropdownMenu(
+                            expanded = isDropDownExpanded.value,
+                            onDismissRequest = { isDropDownExpanded.value = false },
+                            modifier = Modifier
+                                .background(
+                                    MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
+                                    shape = RoundedCornerShape(12.dp)
+                                )
+                                .align(Alignment.TopEnd)
+                        ) {
+                            cities.forEachIndexed { index, city ->
+                                DropdownMenuItem(
+                                    text = {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.Start,
+                                            modifier = Modifier.padding(vertical = 4.dp)
+                                        ) {
+                                            Text(
+                                                text = city.name,
+                                                style = MaterialTheme.typography.bodyLarge,
+                                                color = MaterialTheme.colorScheme.onSurface
+                                            )
+                                            Spacer(modifier = Modifier.width(8.dp))
+                                            Icon(
+                                                imageVector = Icons.Default.LocationOn,
+                                                contentDescription = null,
+                                                tint = MaterialTheme.colorScheme.primary,
+                                                modifier = Modifier.size(20.dp)
+                                            )
+                                        }
+                                    },
+                                    onClick = {
+                                        isDropDownExpanded.value = false
+                                        itemPosition.value = index
+
+                                        val latitude = city.latitude
+                                        val longitude = city.longitude
+                                        CameraBounds.selectedCityName = city.name
+                                        val zoom = city.zoom
+                                        CameraBounds.setCoordinates(latitude, longitude)
+                                        val cameraPosition = CameraPosition.fromLatLngZoom(
+                                            LatLng(latitude, longitude), zoom.toFloat()
+                                        )
+                                        CameraBounds.setCameraPosition(cameraPosition)
+                                        navController.navigate(BottomNavigationItems.MapScreen.route)
+                                    }
+                                )
+                            }
+                        }
+                    }
+
+                }
             }
 
         } else {
