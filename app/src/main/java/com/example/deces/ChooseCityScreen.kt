@@ -48,16 +48,14 @@ fun ChooseCityScreen(navController: NavController, fromProfile: Boolean) {
 
     // Fetch city names from Firestore
     LaunchedEffect(Unit) {
-        firestore.collection("availableCities").get()
-            .addOnSuccessListener { documents ->
-                for (document in documents) {
-                    val name = document.getString("name")
-                    if (name != null) cities.add(name)
-                }
+        firestore.collection("availableCities").get().addOnSuccessListener { documents ->
+            for (document in documents) {
+                val name = document.getString("name")
+                if (name != null) cities.add(name)
             }
-            .addOnFailureListener {
-                println("Error fetching cities: ${it.message}")
-            }
+        }.addOnFailureListener {
+            println("Error fetching cities: ${it.message}")
+        }
     }
 
     // UI Layout
@@ -139,6 +137,7 @@ fun ChooseCityScreen(navController: NavController, fromProfile: Boolean) {
                                 thickness = 1.dp,
                             )
                         }
+
                     }
                 }
             }
@@ -166,6 +165,7 @@ fun ChooseCityScreen(navController: NavController, fromProfile: Boolean) {
                                     }
                                 }
                                 .addOnFailureListener { e ->
+
                                     println("Error saving chosen city: ${e.message}")
                                 }
                         } else {

@@ -1,30 +1,26 @@
 package com.example.deces
 
 import android.annotation.SuppressLint
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -39,37 +35,27 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.Fill
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
-
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
-import androidx.navigation.NavGraph.Companion.findStartDestination
-import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberAsyncImagePainter
 import coil.compose.rememberImagePainter
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
+import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
-import java.util.Date
 import java.util.Locale
-import kotlin.math.roundToInt
+import kotlin.math.round
 
 
 @SuppressLint("ModifierFactoryUnreferencedReceiver")
@@ -81,10 +67,9 @@ fun Modifier.noRippleClickable(onClick: () -> Unit): Modifier = composed {
     )
 }
 
+
 @Composable
 fun EventDetailScreen(documentId: String, navController: NavController) {
-
-
     var location by remember { mutableStateOf<Map<String, Any>?>(null) }
     var images by remember { mutableStateOf(listOf<String>()) }
     var isFavorite by remember { mutableStateOf(false) }
@@ -302,7 +287,7 @@ fun EventDetailScreen(documentId: String, navController: NavController) {
                                         CameraBounds.camerapostion = cameraPosition
                                         CameraBounds.showSpecifiedLocationOnMap = true
                                         CameraBounds.setCoordinates(latitude, longitude)
-                                        navController.navigate("MapScreen") {
+                                        navController.navigate("maproute") {
                                             popUpTo("MapScreen") {
                                                 saveState = false
                                             }
@@ -314,38 +299,61 @@ fun EventDetailScreen(documentId: String, navController: NavController) {
                                 shape = RoundedCornerShape(50)
                             ) {
                                 Text(
-                                    text = "Find on map", color = Color.Black
+                                    text = "Prikaži na karti", color = Color.Black
                                 )
                             }
                         }
+//Sve recenzije
+
 
                         val reviews = remember { mutableStateListOf<Map<String, String>>() }
 
+                        DisposableEffect(documentId) {
+                            val db = FirebaseFirestore.getInstance()
 
-                        LaunchedEffect(documentId) {
-                            FirebaseFirestore.getInstance().collection("events")
-                                .document(documentId).collection("reviews").get()
-                                .addOnSuccessListener { snapshot ->
-                                    reviews.clear()
-                                    snapshot.documents.mapNotNullTo(reviews) { doc ->
-                                        mapOf(
-                                            "user" to (doc.getString("user")
-                                                ?: "Nepoznati korisnik"),
-                                            "title" to (doc.getString("title") ?: "Bez naslova"),
-                                            "description" to (doc.getString("description") ?: ""),
-                                            "date" to (doc.getString("date") ?: ""),
+                            // Dodaj Snapshot Listener za automatsko osvježavanje
+                            val listener = db.collection("events")
+                                .document(documentId).collection("reviews")
+                                .addSnapshotListener { snapshot, error ->
+                                    if (error != null) {
+                                        Log.e("Firebase", "Error while listening to changes: ${error.message}")
+                                        return@addSnapshotListener
+                                    }
 
-                                        )
+                                    if (snapshot != null) {
+                                        reviews.clear()
 
+                                        // Filtriraj i sortiraj recenzije
+                                        val sortedReviews = snapshot.documents
+                                            .filter { document ->
+                                                val title = document.getString("title")?.takeIf { it.isNotEmpty() }
+                                                val description = document.getString("description")?.takeIf { it.isNotEmpty() }
+                                                val isFake = document.getBoolean("isFake") ?: false
+                                                title != null && description != null && !isFake
+                                            }
+                                            .sortedByDescending { document ->
+                                                val timestamp = document["date"] as? Timestamp
+                                                timestamp?.toDate()
+                                            }
+
+                                        // Dodaj sortirane recenzije u `reviews`
+                                        sortedReviews.forEach { document ->
+                                            reviews.add(document.data as Map<String, String>)
+                                        }
                                     }
                                 }
+
+                            // Očisti listener na izlasku iz scope-a
+                            onDispose {
+                                listener.remove()
+                            }
                         }
+
 
                         if (reviews.isNotEmpty()) {
                             Column(
                                 modifier = Modifier
                                     .fillMaxWidth()
-
                                     .padding(horizontal = 20.dp)
                             ) {
                                 Text(
@@ -356,20 +364,30 @@ fun EventDetailScreen(documentId: String, navController: NavController) {
                                     modifier = Modifier.padding(bottom = 8.dp)
                                 )
                                 reviews.forEach { review ->
-
-                                    val userId = review["user"] as? String
+                                    val userId = review["user"]
                                     var userName by remember { mutableStateOf("Nepoznati korisnik") }
                                     var profilePictureUrl by remember { mutableStateOf("") }
-
+                                    var isFake by remember { mutableStateOf(false) }
+                                    var date by remember { mutableStateOf("") }
                                     LaunchedEffect(userId) {
                                         userId?.let { id ->
                                             db.collection("users").document(id).get()
                                                 .addOnSuccessListener { userDoc ->
-                                                    userName = userDoc.getString("name") ?: "Nepoznati korisnik"
-                                                    profilePictureUrl = userDoc.getString("profilePicture") ?: ""
+                                                    userName = userDoc.getString("name")
+                                                        ?: "Nepoznati korisnik"
+                                                    profilePictureUrl =
+                                                        userDoc.getString("profilePicture") ?: ""
+                                                    isFake = (userDoc.getBoolean("isFake") ?: false)
+                                                    val timestamp = review["date"] as? Timestamp
+                                                    date = timestamp?.toDate()?.let {
+                                                        SimpleDateFormat(
+                                                            "dd/MM/yyyy", Locale.getDefault()
+                                                        ).format(it)
+                                                    }.toString()
                                                 }
                                         }
                                     }
+
                                     Box(
                                         modifier = Modifier
                                             .fillMaxWidth()
@@ -378,7 +396,7 @@ fun EventDetailScreen(documentId: String, navController: NavController) {
                                             .background(Color(0xFF3A2A1E))
                                             .padding(16.dp)
                                     ) {
-                                        Row(){
+                                        Row {
                                             Box(
                                                 contentAlignment = Alignment.Center,
                                                 modifier = Modifier
@@ -392,8 +410,9 @@ fun EventDetailScreen(documentId: String, navController: NavController) {
                                                             profilePictureUrl
                                                         ),
                                                         contentDescription = "Profile Picture",
-                                                        modifier = Modifier.size(40.dp)
-                                                        .clip(CircleShape),
+                                                        modifier = Modifier
+                                                            .size(40.dp)
+                                                            .clip(CircleShape),
                                                         contentScale = ContentScale.Crop
                                                     )
                                                 } else {
@@ -406,44 +425,47 @@ fun EventDetailScreen(documentId: String, navController: NavController) {
                                                 }
                                             }
 
-                                            Column(
-                                            modifier = Modifier.padding(start = 10.dp)
-                                        )
-                                        {
-                                            Text(
-                                                text = userName,
-                                                fontWeight = FontWeight.Bold,
-                                                fontSize = 14.sp,
-                                                color = Color.White,
+                                            Column(modifier = Modifier.padding(start = 10.dp)) {
+                                                Text(
+                                                    text = userName,
+                                                    fontWeight = FontWeight.Bold,
+                                                    fontSize = 14.sp,
+                                                    color = Color.White
+                                                )
 
-                                            )
-                                            Text(
-                                                text = review["date"] ?: "",
-                                                fontSize = 14.sp,
-                                                color = Color.White,
 
-                                            )
-                                            Text(
-                                                text = review["title"] ?: "",
-                                                fontWeight = FontWeight.SemiBold,
-                                                fontSize = 19.sp,
-                                                color = Color.White,
-                                                modifier = Modifier.padding(vertical = 10.dp)
-                                            )
 
-                                            Text(
-                                                text = review["description"] ?: "",
-                                                fontSize = 12.sp,
-                                                color = Color(0xFFa1a1a1),
-                                                textAlign = TextAlign.Justify
+                                                Text(
+                                                    text = date,
+                                                    fontSize = 14.sp,
+                                                    color = Color.White
+                                                )
 
-                                            )
+
+
+
+                                                Text(
+                                                    text = review["title"] ?: "",
+                                                    fontWeight = FontWeight.SemiBold,
+                                                    fontSize = 19.sp,
+                                                    color = Color.White,
+                                                    modifier = Modifier.padding(vertical = 10.dp)
+                                                )
+                                                Text(
+                                                    text = review["description"] ?: "",
+                                                    fontSize = 12.sp,
+                                                    color = Color(0xFFa1a1a1),
+                                                    textAlign = TextAlign.Justify
+                                                )
+                                            }
                                         }
-                                     }
                                     }
                                 }
                             }
                         }
+
+
+                        //Pisanje recenzije
 
                         Column(
                             modifier = Modifier
@@ -458,6 +480,10 @@ fun EventDetailScreen(documentId: String, navController: NavController) {
                             val isFormValid =
                                 reviewTitle.isNotBlank() && reviewDescription.isNotBlank()
                             val context = LocalContext.current
+
+
+//OCIJENI EVENT
+
 
                             userId?.let {
                                 RatingSection(
@@ -490,13 +516,16 @@ fun EventDetailScreen(documentId: String, navController: NavController) {
                                         shape = RoundedCornerShape(8.dp)
                                     ),
                                 colors = TextFieldDefaults.colors(
+                                    focusedTextColor = Color.White,
+                                    unfocusedTextColor = Color.White,
+                                    focusedLabelColor = Color.Gray,
+                                    unfocusedLabelColor = Color.Gray,
                                     focusedContainerColor = Color.Transparent,
                                     unfocusedContainerColor = Color.Transparent,
                                     unfocusedIndicatorColor = Color.Transparent,
                                     focusedIndicatorColor = Color.Transparent,
                                     cursorColor = Color.White
                                 ),
-
                                 shape = RoundedCornerShape(8.dp)
                             )
                             Spacer(modifier = Modifier.height(16.dp))
@@ -505,7 +534,6 @@ fun EventDetailScreen(documentId: String, navController: NavController) {
                                 value = reviewDescription,
                                 onValueChange = { reviewDescription = it },
                                 label = { Text("Opis") },
-
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .height(250.dp)
@@ -515,6 +543,10 @@ fun EventDetailScreen(documentId: String, navController: NavController) {
                                         shape = RoundedCornerShape(8.dp)
                                     ),
                                 colors = TextFieldDefaults.colors(
+                                    focusedTextColor = Color.White,
+                                    unfocusedTextColor = Color.White,
+                                    focusedLabelColor = Color.Gray,
+                                    unfocusedLabelColor = Color.Gray,
                                     focusedContainerColor = Color.Transparent,
                                     unfocusedContainerColor = Color.Transparent,
                                     unfocusedIndicatorColor = Color.Transparent,
@@ -532,21 +564,18 @@ fun EventDetailScreen(documentId: String, navController: NavController) {
                                 Button(
                                     onClick = {
                                         val userId = FirebaseAuth.getInstance().currentUser?.uid
-                                        val dateFormat =
-                                            SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
-                                        val todayDate = dateFormat.format(Date()).toString()
                                         if (userId != null) {
                                             val reviewData = mapOf(
                                                 "user" to userId,
                                                 "title" to reviewTitle,
                                                 "description" to reviewDescription,
-                                                "date" to todayDate
+                                                "date" to com.google.firebase.Timestamp.now(),
+                                                "isFake" to false
                                             )
                                             val reviewsRef =
                                                 FirebaseFirestore.getInstance().collection("events")
                                                     .document(documentId).collection("reviews")
-                                            val newReviewRef =
-                                                reviewsRef.document() // Generate random UID for review
+                                            val newReviewRef = reviewsRef.document()
                                             newReviewRef.set(reviewData).addOnSuccessListener {
                                                 Toast.makeText(
                                                     context,
@@ -571,8 +600,7 @@ fun EventDetailScreen(documentId: String, navController: NavController) {
                                         containerColor = Color(0xFFf58845),
                                         disabledContainerColor = Color.Gray
                                     ),
-
-                                    enabled = isFormValid,
+                                    enabled = isFormValid
                                 ) {
                                     Text(text = "Spremi recenziju", color = Color.White)
                                 }
@@ -584,20 +612,14 @@ fun EventDetailScreen(documentId: String, navController: NavController) {
                     }
 
                 }
-
-
             }
-
         }
     }
 }
 
-
 @Composable
-fun RatingSection(
-    userId: String?, documentId: String, navController: NavController
-) {
-    var rating by remember { mutableStateOf(0f) }
+fun RatingSection(userId: String?, documentId: String, navController: NavController) {
+    var rating by remember { mutableStateOf(0) }
     var isRated by remember { mutableStateOf(false) } // Provjera je li ocijenjeno
     val context = LocalContext.current
 
@@ -609,9 +631,9 @@ fun RatingSection(
                 .document(documentId)
 
             userRatingRef.get().addOnSuccessListener { document ->
-                val existingRating = document.getDouble("rating") ?: 0.0
-                rating = existingRating.toFloat()
-                isRated = existingRating > 0.0
+                val existingRating = document.getLong("rating") ?: 0
+                rating = existingRating.toInt()
+                isRated = existingRating > 0
             }
         }
     }
@@ -630,45 +652,29 @@ fun RatingSection(
             color = Color.White
         )
         Spacer(modifier = Modifier.height(16.dp))
-        var gestureRating by remember { mutableStateOf(0f) }
-        var isDragging by remember { mutableStateOf(false) }
 
-        Box(modifier = Modifier
-            .fillMaxWidth()
-            .height(50.dp)
-            .pointerInput(Unit) {
-                if (!isRated) {
-                    detectDragGestures(onDragStart = { isDragging = true }, onDragEnd = {
-                        isDragging = false
-                        rating = roundToNearestHalf(gestureRating)
-                    }, onDragCancel = { isDragging = false }, onDrag = { change, _ ->
-                        val positionX = change.position.x.coerceIn(0f, size.width.toFloat())
-                        val maxStars = 5f
-                        val calculatedRating = (positionX / size.width) * maxStars
-                        gestureRating = calculatedRating.coerceIn(0f, maxStars)
-                    })
-                }
-            }) {
-            val displayRating = if (isDragging) roundToNearestHalf(gestureRating) else rating
-            Row(
-                modifier = Modifier.fillMaxSize(), horizontalArrangement = Arrangement.Center
-            ) {
-                for (i in 1..5) {
-                    val fillRatio = when {
-                        displayRating >= i -> 1f
-                        displayRating > i - 1 -> displayRating - (i - 1)
-                        else -> 0f
-                    }
-
-                    Canvas(modifier = Modifier.size(40.dp)) {
-                        drawStar(fillRatio)
-                    }
-                }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp),
+            horizontalArrangement = Arrangement.Center
+        ) {
+            for (i in 1..5) {
+                Icon(
+                    imageVector = if (i <= rating) Icons.Filled.Star else Icons.Outlined.Star,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clickable(enabled = !isRated) {
+                            rating = i
+                        },
+                    tint = if (i <= rating) Color(0xFFF58845) else Color.Gray
+                )
             }
         }
 
         Text(
-            text = "Trenutni odabir: ${String.format("%.1f", rating)}",
+            text = "Trenutni odabir: $rating",
             color = Color.White,
             fontSize = 14.sp,
             modifier = Modifier.align(Alignment.CenterHorizontally)
@@ -678,9 +684,9 @@ fun RatingSection(
         if (!isRated) {
             Button(
                 colors = ButtonDefaults.buttonColors(
-                    contentColor = Color(0xFFf58845),
+                    contentColor = Color(0xFFF58845),
                     disabledContentColor = Color.Gray,
-                    containerColor = Color(0xFFf58845),
+                    containerColor = Color(0xFFF58845),
                     disabledContainerColor = Color.Gray
                 ),
                 onClick = {
@@ -701,13 +707,17 @@ fun RatingSection(
                                 val updatedData = mapOf(
                                     "ratingSum" to ratingSum,
                                     "ratingCount" to ratingCount,
-                                    "rating" to if (ratingCount > 0) ratingSum / ratingCount else 0.0
+                                    "rating" to if (ratingCount > 0) {
+                                        val average = ratingSum / ratingCount
+                                        (round(average * 100) / 100)
+                                    } else 0.0
                                 )
 
                                 eventRef.update(updatedData).addOnSuccessListener {
                                     Toast.makeText(
                                         context, "Ocjena uspješno spremljena!", Toast.LENGTH_SHORT
                                     ).show()
+                                    isRated = true
                                 }.addOnFailureListener {
                                     Toast.makeText(
                                         context, "Greška pri spremanju ocjene!", Toast.LENGTH_SHORT
@@ -724,7 +734,7 @@ fun RatingSection(
                     }
                 },
                 shape = RoundedCornerShape(50),
-                enabled = rating > 0f,
+                enabled = rating > 0,
                 modifier = Modifier.align(Alignment.CenterHorizontally)
             ) {
                 Text(text = "Spremi ocjenu", color = Color.White)
@@ -740,48 +750,6 @@ fun RatingSection(
     }
 }
 
-fun roundToNearestHalf(value: Float): Float {
-    return (value * 2).roundToInt() / 2f
-}
-
-fun DrawScope.drawStar(fillRatio: Float) {
-    drawPath(
-        path = createStarPath(), color = Color(0xFF754324), style = Fill
-    )
-    drawPath(
-        path = createStarPath(), color = Color(0xFFf58845), style = Fill, alpha = fillRatio
-    )
-}
-
-
-fun createStarPath(): Path {
-    val path = Path()
-    val centerX = 50f
-    val centerY = 50f
-    val outerRadius = 40f
-    val innerRadius = 20f
-    val points = 10
-
-    val angleStep = (2 * Math.PI / points).toFloat()
-    val startAngle = -Math.PI / 2
-
-    for (i in 0 until points) {
-        val radius = if (i % 2 == 0) outerRadius else innerRadius
-        val angle = startAngle + i * angleStep
-        val x = (centerX + radius * Math.cos(angle)).toFloat()
-        val y = (centerY + radius * Math.sin(angle)).toFloat()
-
-        if (i == 0) {
-            path.moveTo(x, y)
-        } else {
-            path.lineTo(x, y)
-        }
-    }
-    path.close()
-    return path
-}
-
-
 @Composable
 fun RatingDisplay(eventId: String) {
     val db = FirebaseFirestore.getInstance()
@@ -796,10 +764,6 @@ fun RatingDisplay(eventId: String) {
         }
     }
 
-    val fullStars = rating.toInt()
-    val halfStar = if (rating % 1 >= 0.5) 1 else 0
-    val emptyStars = 5 - (fullStars + halfStar)
-
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -808,23 +772,13 @@ fun RatingDisplay(eventId: String) {
             .padding(horizontal = 25.dp)
             .padding(top = 8.dp)
     ) {
-
-        repeat(fullStars) {
-            Canvas(modifier = Modifier.size(15.dp)) {
-                drawStar2(1f)
-            }
-        }
-
-        if (halfStar == 1) {
-            Canvas(modifier = Modifier.size(15.dp)) {
-                drawStar2(0.5f)
-            }
-        }
-
-        repeat(emptyStars) {
-            Canvas(modifier = Modifier.size(15.dp)) {
-                drawStar2(0f)
-            }
+        repeat(5) { i ->
+            Icon(
+                imageVector = if (i < rating.toInt()) Icons.Filled.Star else Icons.Outlined.Star,
+                contentDescription = null,
+                modifier = Modifier.size(15.dp),
+                tint = if (i < rating.toInt()) Color(0xFFF58845) else Color.Gray
+            )
         }
 
         Text(
@@ -836,31 +790,4 @@ fun RatingDisplay(eventId: String) {
             fontSize = 10.sp
         )
     }
-}
-
-fun DrawScope.drawStar2(fillRatio: Float) {
-    val centerX = size.width / 2
-    val centerY = size.height / 2
-    val outerRadius = size.width / 2
-    val innerRadius = size.width / 4
-    val points = 10
-    val angleStep = (2 * Math.PI / points).toFloat()
-    val startAngle = -Math.PI / 2
-
-    val path = Path()
-    for (i in 0 until points) {
-        val radius = if (i % 2 == 0) outerRadius else innerRadius
-        val angle = startAngle + i * angleStep
-        val x = (centerX + radius * Math.cos(angle)).toFloat()
-        val y = (centerY + radius * Math.sin(angle)).toFloat()
-
-        if (i == 0) {
-            path.moveTo(x, y)
-        } else {
-            path.lineTo(x, y)
-        }
-    }
-    path.close()
-    drawPath(path = path, color = Color(0xFF754324))
-    drawPath(path = path, color = Color(0xFFf58845), alpha = fillRatio)
 }

@@ -1,14 +1,16 @@
 package com.example.deces
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
@@ -37,38 +39,84 @@ fun LoginScreen(navController: NavController) {
         ) {
             // Title Text
             Text(
-                text = "Prijava",
+                text = "Prijavi se",
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.White
             )
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = "Nemaš račun? ",
+                    fontSize = 14.sp,
+                    color = Color(0xFFB3A9A1),
+                )
+
+                Text(text = " Registriraj se",
+                    fontSize = 14.sp,
+                    color = Color(0xFFf58845),
+                    modifier = Modifier.clickable {
+                        navController.navigate("Register")
+                    })
+            }
 
             Spacer(modifier = Modifier.height(32.dp))
 
             // Email Input
-            OutlinedTextField(
+            TextField(
                 value = email,
                 onValueChange = { email = it },
-                label = { Text("EMAIL", color = Color.White) },
+                label = { Text("EMAIL") },
+                shape = RoundedCornerShape(8.dp),
                 modifier = Modifier
-                    .width(280.dp)
+                    .width(300.dp)
                     .padding(vertical = 8.dp)
-                    .background(Color(0xFF8A6D57), shape = RoundedCornerShape(51)),
+                    .border(
+                        width = 0.dp, color = Color.Transparent
+                    )
+                    .background(
+                        Color(0xFF8A6D57), shape = RoundedCornerShape(51)
+                    ),
+                colors = TextFieldDefaults.colors(
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White,
+                    focusedLabelColor = Color.White,
+                    unfocusedLabelColor = Color.White,
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    focusedIndicatorColor = Color.Transparent,
+                ),
                 singleLine = true,
-                textStyle = TextStyle(color = Color.White)
             )
 
             // Password Input
-            OutlinedTextField(
+            TextField(
                 value = password,
                 onValueChange = { password = it },
-                label = { Text("LOZINKA", color = Color.White) },
+                label = { Text("LOZINKA") },
+                shape = RoundedCornerShape(8.dp),
                 modifier = Modifier
-                    .width(280.dp)
+                    .width(300.dp)
                     .padding(vertical = 8.dp)
-                    .background(Color(0xFF8A6D57), shape = RoundedCornerShape(51)),
+                    .border(
+                        width = 0.dp, color = Color.Transparent
+                    )
+                    .background(
+                        Color(0xFF8A6D57), shape = RoundedCornerShape(51)
+                    ),
+                colors = TextFieldDefaults.colors(
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White,
+                    focusedLabelColor = Color.White,
+                    unfocusedLabelColor = Color.White,
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    focusedIndicatorColor = Color.Transparent,
+                ),
                 singleLine = true,
-                textStyle = TextStyle(color = Color.White),
                 visualTransformation = PasswordVisualTransformation()
             )
 
@@ -81,11 +129,10 @@ fun LoginScreen(navController: NavController) {
                         auth.signInWithEmailAndPassword(email, password)
                             .addOnCompleteListener { task ->
                                 if (task.isSuccessful) {
-                                    // Navigate to the home screen or other screen
-                                    navController.navigate(BottomNavigationItems.Screen3.route)
+                                    navController.navigate("waitscreenroute")
                                 } else {
-                                    // Handle login error
-                                    val errorMessage = task.exception?.localizedMessage ?: "Login failed"
+                                    val errorMessage =
+                                        task.exception?.localizedMessage ?: "Login failed"
                                     println("Error: $errorMessage")
                                 }
                             }

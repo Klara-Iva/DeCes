@@ -6,36 +6,30 @@ import androidx.compose.material.icons.outlined.DateRange
 import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material.icons.outlined.LocationOn
+import androidx.compose.material.icons.sharp.Favorite
+import androidx.compose.material.icons.sharp.FavoriteBorder
 import androidx.compose.ui.graphics.vector.ImageVector
 
 sealed class BottomNavigationItems(
-    val route: String,
-    val title: String? = null,
-    val icon: ImageVector? = null
+    val route: String, val title: String? = null, val icon: ImageVector? = null
 ) {
     object MapScreen : BottomNavigationItems(
-        route = "MapScreen",
-        title = "Map",
-        icon = Icons.Outlined.LocationOn
+        route = "maproute", title = "Map", icon = Icons.Outlined.LocationOn
     )
-    object Screen2 : BottomNavigationItems(
-        route = "screen2",
-        title = "Calendar",
-        icon = Icons.Outlined.DateRange
+
+    object CalendarScreen : BottomNavigationItems(
+        route = "calendarroute", title = "Calendar", icon = Icons.Outlined.DateRange
     )
-    object Screen3 : BottomNavigationItems(
-        route = "screen3",
-        title = "Home",
-        icon = Icons.Outlined.Home
+
+    object EventsHomeScreen : BottomNavigationItems(
+        route = "eventshomeroute", title = "Home", icon = Icons.Outlined.Home
     )
-    object Screen4 : BottomNavigationItems(
-        route = "screen4",
-        title = "Favourites",
-        icon = Icons.Outlined.Favorite
+
+    object FavouritesScreen : BottomNavigationItems(
+        route = "favouritesroute", title = "Favourites", icon = Icons.Sharp.FavoriteBorder
     )
-    object Screen5 : BottomNavigationItems(
-        route = "screen5",
-        title = "Profile",
-        icon = Icons.Outlined.AccountCircle
+
+    object ProfileScreen : BottomNavigationItems(
+        route = "profileroute", title = "Profile", icon = Icons.Outlined.AccountCircle
     )
 }
