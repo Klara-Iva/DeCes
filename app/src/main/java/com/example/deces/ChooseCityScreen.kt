@@ -40,7 +40,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
 @Composable
-fun ChooseCityScreen(navController: NavController) {
+fun ChooseCityScreen(navController: NavController, fromProfile: Boolean) {
     val firestore = FirebaseFirestore.getInstance()
     val cities = remember { mutableStateListOf<String>() } // To store city names
     var selectedCity by remember { mutableStateOf("") } // Selected city
@@ -95,6 +95,7 @@ fun ChooseCityScreen(navController: NavController) {
                     .fillMaxWidth()
             ) {
                 var buttonWidth by remember { mutableStateOf(0) }
+                var selectedCityName by remember { mutableStateOf(CameraBounds.selectedCityName) }
 
                 Button(
                     onClick = { expanded = !expanded },
@@ -107,7 +108,7 @@ fun ChooseCityScreen(navController: NavController) {
                         }
                 ) {
                     Text(
-                        text = if (selectedCity.isEmpty()) "Odaberi" else selectedCity,
+                        text = if (selectedCityName.isEmpty()) "Odaberi" else selectedCityName,
                         color = Color.White
                     )
                 }
@@ -122,6 +123,7 @@ fun ChooseCityScreen(navController: NavController) {
                     cities.forEachIndexed { index, city ->
                         DropdownMenuItem(
                             onClick = {
+                                selectedCityName = city
                                 CameraBounds.selectedCityName = city
                                 expanded = false
                             },
@@ -142,21 +144,26 @@ fun ChooseCityScreen(navController: NavController) {
             }
 
 
+
             Spacer(modifier = Modifier.height(16.dp))
 
             // Next Button
             Button(
                 onClick = {
-                    if (selectedCity.isNotEmpty()) {
+                    if (CameraBounds.selectedCityName.isNotEmpty()) {
                         val auth = FirebaseAuth.getInstance()
                         val currentUser = auth.currentUser
 
                         if (currentUser != null) {
                             firestore.collection("users").document(currentUser.uid)
-                                .update("chosenCity", selectedCity)
+                                .update("chosenCity", CameraBounds.selectedCityName)
                                 .addOnSuccessListener {
-                                    println("Chosen city saved successfully: $selectedCity")
-                                    navController.navigate("chooseInterests")
+                                    println("Chosen city saved successfully: ${CameraBounds.selectedCityName}")
+                                    if (fromProfile) {
+                                        navController.popBackStack()
+                                    } else {
+                                        navController.navigate("chooseInterests")
+                                    }
                                 }
                                 .addOnFailureListener { e ->
                                     println("Error saving chosen city: ${e.message}")
