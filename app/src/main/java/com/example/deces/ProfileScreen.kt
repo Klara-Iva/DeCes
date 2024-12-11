@@ -304,7 +304,9 @@ fun Screen5(navController: NavController) {
                 Divider(color = Color(0xFF6a5240), thickness = 1.dp)
                 MenuItem(icon = Icons.Default.Settings, title = "Uredi preference")
                 Divider(color = Color(0xFF6a5240), thickness = 1.dp)
-                MenuItem(icon = Icons.Default.LocationOn, title = "Uredi lokaciju")
+                MenuItem(icon = Icons.Default.LocationOn,
+                    title = "Uredi lokaciju",
+                    onClick = { navController.navigate("chooseCity") })
                 Divider(color = Color(0xFF6a5240), thickness = 1.dp)
                 MenuItem(icon = Icons.Default.ExitToApp, title = "Odjava", onClick = {
                     auth.signOut() // Odjava

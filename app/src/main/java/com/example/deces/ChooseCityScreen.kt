@@ -1,6 +1,7 @@
 package com.example.deces
 
 import android.app.Activity
+import android.graphics.Camera
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,9 +10,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Text
@@ -25,7 +28,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -85,13 +90,21 @@ fun ChooseCityScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Dropdown Button
-            Box(modifier = Modifier.fillMaxWidth()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+            ) {
+                var buttonWidth by remember { mutableStateOf(0) }
+
                 Button(
                     onClick = { expanded = !expanded },
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF8A6D57)),
                     shape = RoundedCornerShape(8.dp),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .onGloballyPositioned { coordinates ->
+                            buttonWidth = coordinates.size.width
+                        }
                 ) {
                     Text(
                         text = if (selectedCity.isEmpty()) "Odaberi" else selectedCity,
@@ -101,21 +114,33 @@ fun ChooseCityScreen(navController: NavController) {
 
                 DropdownMenu(
                     expanded = expanded,
-                    onDismissRequest = { expanded = false }
+                    onDismissRequest = { expanded = false },
+                    modifier = Modifier
+                        .width(with(LocalDensity.current) { buttonWidth.toDp() })
+                        .background(Color(0xFF8A6D57))
                 ) {
-                    cities.forEach { city ->
+                    cities.forEachIndexed { index, city ->
                         DropdownMenuItem(
                             onClick = {
-                                selectedCity = city
+                                CameraBounds.selectedCityName = city
                                 expanded = false
                             },
+                            modifier = Modifier
+                                .fillMaxWidth(),
                             text = {
-                                Text(text = city, color = Color.Black)
+                                Text(text = city, color = Color.White)
                             }
                         )
+                        if (index != cities.size - 1) {
+                            Divider(
+                                color = Color(0xFF291b11),
+                                thickness = 1.dp,
+                            )
+                        }
                     }
                 }
             }
+
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -127,12 +152,10 @@ fun ChooseCityScreen(navController: NavController) {
                         val currentUser = auth.currentUser
 
                         if (currentUser != null) {
-                            // Save the selectedCity to Firestore under the current user's document
                             firestore.collection("users").document(currentUser.uid)
                                 .update("chosenCity", selectedCity)
                                 .addOnSuccessListener {
                                     println("Chosen city saved successfully: $selectedCity")
-                                    // Navigate to the next screen after saving
                                     navController.navigate("chooseInterests")
                                 }
                                 .addOnFailureListener { e ->

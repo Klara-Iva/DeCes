@@ -308,7 +308,6 @@ fun MapScreen(navController: NavController) {
                             .fillMaxWidth()
                             .padding(start = 20.dp, top = 65.dp, end = 20.dp, bottom = 10.dp)
                             .zIndex(3f),
-n
                         contentAlignment = Alignment.TopEnd
                     ) {
                         DropdownMenu(
