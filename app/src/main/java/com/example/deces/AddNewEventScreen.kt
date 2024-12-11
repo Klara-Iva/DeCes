@@ -17,6 +17,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
 import java.util.*
 
@@ -248,8 +249,8 @@ fun AddNewEventScreen(navController: NavController) {
                         "category" to category,
                         "city" to city,
                         "description" to description,
-                        "startDate" to startDateTimestamp,
-                        "endDate" to endDateTimestamp,
+                        "startDate" to startDateTimestamp?.let { Timestamp(Date(it)) },
+                        "endDate" to endDateTimestamp?.let { Timestamp(Date(it)) },
                         "latitude" to latitude.toDoubleOrNull(),
                         "longitude" to longitude.toDoubleOrNull(),
                         "photo1" to photo1.takeIf { it.isNotEmpty() },
