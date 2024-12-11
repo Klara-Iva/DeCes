@@ -7,6 +7,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.example.deces.AddNewEventScreen
 import com.example.deces.AllEventsScreen
 import com.example.deces.CalendarScreen
 import com.example.deces.ChangeInterestsScreen
@@ -86,6 +87,10 @@ fun NavigationGraph(navController: NavHostController, onBottomBarVisibilityChang
         composable("waitscreenroute") {
             onBottomBarVisibilityChanged(false)
             WaitScreen(navController = navController)
+        }
+        composable("AddNewEventScreen") {
+            onBottomBarVisibilityChanged(false)
+            AddNewEventScreen(navController = navController)
         }
     }
 }

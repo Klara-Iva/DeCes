@@ -13,6 +13,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.deces.CameraBounds.selectedCityName
+import com.example.deces.GlobalVariables
 import com.example.deces.R
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -33,6 +34,8 @@ fun WaitScreen(navController: NavController) {
             val db = FirebaseFirestore.getInstance()
             db.collection("users").document(currentUser.uid).get().addOnSuccessListener { result ->
                 selectedCityName = result["chosenCity"].toString()
+                GlobalVariables.isAdmin= result.getBoolean("isAdmin")?: false
+
             }.addOnCompleteListener {
                 navController.navigate("eventshomeroute") {
                     popUpTo("eventshomeroute") { inclusive = true }
