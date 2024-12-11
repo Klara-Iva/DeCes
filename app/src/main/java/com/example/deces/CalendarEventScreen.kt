@@ -1,17 +1,14 @@
 package com.example.deces
 
+import android.util.Log
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.absolutePadding
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -19,21 +16,15 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardColors
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -52,45 +43,35 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
-import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import kotlin.system.exitProcess
 
-
 @Composable
-fun AllEventsScreen(navController: NavController) {
-
-    BackHandler {
-        exitProcess(0)
-    }
+fun CalendarEventScreen(navController: NavController, date: Date) {
 
     //related to map screen, must be initialized here
     val auth = FirebaseAuth.getInstance()
     val currentUser = auth.currentUser
     CameraBounds.getCoordinatesFromBase(currentUser!!.uid)
-    //
 
-    var searchQuery by remember { mutableStateOf("") }
     var locations by remember { mutableStateOf(listOf<Location>()) }
     var allLocations by remember { mutableStateOf(listOf<Location>()) }
 
     LaunchedEffect(Unit) {
-        fetchLocationsFromFirestore { result ->
+        fetchDatedEventsFromFirestore({ result ->
             allLocations = result
             locations = result
-        }
+        }, date)
     }
 
     Column(
@@ -123,53 +104,8 @@ fun AllEventsScreen(navController: NavController) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Box(
-            modifier = Modifier.padding(horizontal = 20.dp),
-        ) {
-            TextField(
-                maxLines = 1, value = searchQuery,
-                onValueChange = {
-                    searchQuery = it
-                    locations = if (searchQuery.isEmpty()) {
-                        allLocations
-                    } else {
-                        allLocations.filter { location ->
-                            location.name.contains(searchQuery, ignoreCase = true)
-                        }
-                    }
-                },
-
-                label = { Text("Pretraži događaje", fontWeight = FontWeight.Bold) },
-                shape = RoundedCornerShape(50),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color(0xFF8a6d57), shape = RoundedCornerShape(50)),
-
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color.Transparent,
-                    unfocusedContainerColor = Color.Transparent,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                    disabledIndicatorColor = Color.Transparent,
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White,
-                    focusedLabelColor = Color.White,
-                    unfocusedLabelColor = Color.White
-                ),
-                trailingIcon = {
-                    Icon(
-                        imageVector = Icons.Default.Search,
-                        contentDescription = "Search Icon",
-                        tint = Color.White
-                    )
-                },
-            )
-        }
-
-        Spacer(modifier = Modifier.height(25.dp))
-
         Text(
-            text = "Ovo bi vas moglo zanimati: ",
+            text = "Datum pretraživanja ${date.toString()}",
             fontSize = 20.sp,
             color = Color.White,
             fontWeight = FontWeight.Bold,
@@ -186,15 +122,16 @@ fun AllEventsScreen(navController: NavController) {
                 .padding(horizontal = 20.dp)
         ) {
             items(locations) { location ->
-                LocationCard(location, navController)
+                DateCard(location, location.startdate, navController)
             }
         }
     }
 }
 
 @Composable
-fun LocationCard(
+fun DateCard(
     location: Location,
+    date : String,
     navController: NavController,
 ) {
     var animationScale by remember { mutableFloatStateOf(1f) }
@@ -264,39 +201,40 @@ fun LocationCard(
             }
         }
     }
-
 }
 
-fun fetchLocationsFromFirestore(onResult: (List<Location>) -> Unit) {
-    val firestore = FirebaseFirestore.getInstance()
-    firestore.collection("events")
-        .whereEqualTo("city", CameraBounds.selectedCityName)
-        .get()
-        .addOnSuccessListener { documents ->
-            val locations = documents.mapNotNull { doc ->
-                val name = doc.getString("name")
-                val imageUrl = doc.getString("photo1")
-                val description = doc.getString("description")
-                val startdate = doc.getTimestamp("startdate")?.toDate() ?: Date()
-                val enddate = doc.getTimestamp("enddate")?.toDate() ?: Date()
-                val dateFormat = SimpleDateFormat("dd.MM.yyyy.", Locale.getDefault())
-                val formattedDate = dateFormat.format(startdate)
-                val formattedEndDate = dateFormat.format(enddate)
-                val rating = doc.getDouble("rating") ?: 0.0
-                if (name != null && imageUrl != null && description != null) {
-                    Location(doc.id, name, description, imageUrl, formattedDate,formattedEndDate,  rating)
-                } else {
-                    null
-                }
-            }
-            onResult(locations)
+fun fetchDatedEventsFromFirestore(onResult: (List<Location>) -> Unit, date: Date) {
+    // First, fetch all locations based on the selected city
+    fetchLocationsFromFirestore { locations ->
+        // Date format used to parse start and end dates from the string
+        val dateFormat = SimpleDateFormat("dd.MM.yyyy.", Locale.getDefault())
+
+        // Print out the selected date for debugging
+        Log.d("EventFiltering", "Selected Date: ${dateFormat.format(date)}")
+
+        // Filter events that are active on the selected date
+        val filteredLocations = locations.filter { location ->
+            // Convert startdate string to Date
+            val startDate = location.startdate.let { dateFormat.parse(it) }
+            val endDate = location.enddate?.let { dateFormat.parse(it) }
+
+            // Log the parsed start and end dates
+            Log.d("EventFiltering", "Event: ${location.name}")
+            Log.d("EventFiltering", "Start Date: ${location.startdate} -> ${startDate}")
+            Log.d("EventFiltering", "End Date: ${location.enddate} -> ${endDate}")
+
+            // Check if the event is active on the selected date
+            val isActiveOnSelectedDate = startDate != null &&
+                    startDate <= date &&
+                    (endDate == null || endDate >= date)
+
+            // Log the result of the filtering condition for each event
+            Log.d("EventFiltering", "Is Active on Selected Date: $isActiveOnSelectedDate")
+
+            isActiveOnSelectedDate
         }
-        .addOnFailureListener {
-            onResult(emptyList())
-        }
+
+        // Return filtered locations (events that are active on the selected date)
+        onResult(filteredLocations)
+    }
 }
-
-
-
-
-
