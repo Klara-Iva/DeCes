@@ -70,11 +70,14 @@ fun NavigationGraph(navController: NavHostController, onBottomBarVisibilityChang
             onBottomBarVisibilityChanged(false)
             LoginScreen(navController = navController)
         }
-        composable("chooseCity") {
-            onBottomBarVisibilityChanged(false)
-            ChooseCityScreen(navController = navController)
-
+        composable(
+            route = "chooseCity?fromProfile={fromProfile}",
+            arguments = listOf(navArgument("fromProfile") { defaultValue = "false" })
+        ) { backStackEntry ->
+            val fromProfile = backStackEntry.arguments?.getString("fromProfile") == "true"
+            ChooseCityScreen(navController, fromProfile)
         }
+
         composable("chooseInterests") {
             onBottomBarVisibilityChanged(false)
             ChooseInterestsScreen(navController = navController)

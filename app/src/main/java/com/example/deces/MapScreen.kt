@@ -325,7 +325,9 @@ fun MapScreen(navController: NavController) {
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(start = 20.dp, top = 65.dp, end = 20.dp, bottom = 10.dp)
-                            .zIndex(3f), contentAlignment = Alignment.TopEnd
+                            .zIndex(3f),
+                        contentAlignment = Alignment.TopEnd
+
                     ) {
                         DropdownMenu(
                             expanded = isDropDownExpanded.value,

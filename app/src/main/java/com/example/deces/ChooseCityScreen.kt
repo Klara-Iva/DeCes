@@ -1,6 +1,7 @@
 package com.example.deces
 
 import android.app.Activity
+import android.graphics.Camera
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,9 +10,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Text
@@ -25,7 +28,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -35,7 +40,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
 @Composable
-fun ChooseCityScreen(navController: NavController) {
+fun ChooseCityScreen(navController: NavController, fromProfile: Boolean) {
     val firestore = FirebaseFirestore.getInstance()
     val cities = remember { mutableStateListOf<String>() } // To store city names
     var selectedCity by remember { mutableStateOf("") } // Selected city
@@ -83,49 +88,84 @@ fun ChooseCityScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Dropdown Button
-            Box(modifier = Modifier.fillMaxWidth()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+            ) {
+                var buttonWidth by remember { mutableStateOf(0) }
+                var selectedCityName by remember { mutableStateOf(CameraBounds.selectedCityName) }
+
                 Button(
                     onClick = { expanded = !expanded },
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF8A6D57)),
                     shape = RoundedCornerShape(8.dp),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .onGloballyPositioned { coordinates ->
+                            buttonWidth = coordinates.size.width
+                        }
                 ) {
                     Text(
-                        text = if (selectedCity.isEmpty()) "Odaberi" else selectedCity,
+                        text = if (selectedCityName.isEmpty()) "Odaberi" else selectedCityName,
                         color = Color.White
                     )
                 }
 
-                DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                    cities.forEach { city ->
-                        DropdownMenuItem(onClick = {
-                            selectedCity = city
-                            expanded = false
-                        }, text = {
-                            Text(text = city, color = Color.Black)
-                        })
+                DropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false },
+                    modifier = Modifier
+                        .width(with(LocalDensity.current) { buttonWidth.toDp() })
+                        .background(Color(0xFF8A6D57))
+                ) {
+                    cities.forEachIndexed { index, city ->
+                        DropdownMenuItem(
+                            onClick = {
+                                selectedCityName = city
+                                CameraBounds.selectedCityName = city
+                                expanded = false
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            text = {
+                                Text(text = city, color = Color.White)
+                            }
+                        )
+                        if (index != cities.size - 1) {
+                            Divider(
+                                color = Color(0xFF291b11),
+                                thickness = 1.dp,
+                            )
+                        }
+
                     }
                 }
             }
+
+
 
             Spacer(modifier = Modifier.height(16.dp))
 
             // Next Button
             Button(
                 onClick = {
-                    if (selectedCity.isNotEmpty()) {
+                    if (CameraBounds.selectedCityName.isNotEmpty()) {
                         val auth = FirebaseAuth.getInstance()
                         val currentUser = auth.currentUser
 
                         if (currentUser != null) {
                             firestore.collection("users").document(currentUser.uid)
-                                .update("chosenCity", selectedCity).addOnSuccessListener {
-                                    CameraBounds.selectedCityName = selectedCity
-                                    CameraBounds.getCoordinatesFromBase(currentUser.uid)
-                                    println("Chosen city saved successfully: $selectedCity")
-                                    navController.navigate("chooseInterests")
-                                }.addOnFailureListener { e ->
+                                .update("chosenCity", CameraBounds.selectedCityName)
+                                .addOnSuccessListener {
+                                    println("Chosen city saved successfully: ${CameraBounds.selectedCityName}")
+                                    if (fromProfile) {
+                                        navController.popBackStack()
+                                    } else {
+                                        navController.navigate("chooseInterests")
+                                    }
+                                }
+                                .addOnFailureListener { e ->
+
                                     println("Error saving chosen city: ${e.message}")
                                 }
                         } else {
