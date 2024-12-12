@@ -23,9 +23,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.navigation.NavController
 
 @Composable
-fun CalendarScreen() {
+fun CalendarScreen(navController: NavController) {
     val today = java.util.Calendar.getInstance()
     val selectedDate = remember { mutableStateOf(today.timeInMillis) }
 
@@ -56,7 +57,10 @@ fun CalendarScreen() {
                         val calendar = java.util.Calendar.getInstance()
                         calendar.set(year, month, dayOfMonth)
                         selectedDate.value = calendar.timeInMillis
-                    }
+                        val selectedDateMillis = calendar.timeInMillis
+
+                        navController.navigate("calendarEvent/$selectedDateMillis")
+                        }
                 }
             },
             modifier = Modifier

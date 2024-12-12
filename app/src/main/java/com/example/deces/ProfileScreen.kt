@@ -30,12 +30,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -365,15 +368,7 @@ fun Screen5(navController: NavController) {
                 }
 
                 Divider(color = Color(0xFF6a5240), thickness = 1.dp)
-                MenuItem(icon = Icons.Default.ExitToApp, title = "Odjava", onClick = {
-                    auth.signOut() // Odjava
-                    navController.navigate("home") {
-                        popUpTo(navController.graph.startDestinationId) {
-                            inclusive = true
-                        }
-                        launchSingleTop = true
-                    }
-                })
+                LogoutMenuItem(navController = navController)
             }
         }
     }
@@ -414,5 +409,36 @@ fun MenuItem(icon: ImageVector, title: String, onClick: (() -> Unit)? = null) {
                 .padding(end = 16.dp)
         )
     }
+}
+
+@Composable
+fun LogoutMenuItem(navController: NavController) {
+    val context = LocalContext.current
+    val auth = FirebaseAuth.getInstance()
+    val googleSignInClient = GoogleSignIn.getClient(
+        context,
+        GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestIdToken(context.getString(R.string.default_web_client_id))
+            .requestEmail()
+            .build()
+    )
+
+    // Define the logout logic in one place
+    MenuItem(
+        icon = Icons.Default.ExitToApp,
+        title = "Odjava",
+        onClick = {
+            auth.signOut() // Firebase sign out
+            googleSignInClient.signOut().addOnCompleteListener {
+                // Navigate to Home Screen
+                navController.navigate("home") {
+                    popUpTo(navController.graph.startDestinationId) {
+                        inclusive = true
+                    }
+                    launchSingleTop = true
+                }
+            }
+        }
+    )
 }
 
