@@ -50,9 +50,11 @@ fun HomeScreen(navController: NavController) {
             context,
             GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestIdToken(context.getString(R.string.default_web_client_id)) // Add Web Client ID from Firebase
-                .requestEmail().build()
+                .requestEmail()
+                .build() // No need for setAccountName(null)
         )
     }
+
 
     Box(
         modifier = Modifier
@@ -120,6 +122,7 @@ fun HomeScreen(navController: NavController) {
             Button(
                 onClick = {
                     val signInIntent = googleSignInClient.signInIntent
+                    // Launch the account picker
                     (context as? Activity)?.startActivityForResult(signInIntent, RC_SIGN_IN)
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF58845)),
@@ -131,6 +134,7 @@ fun HomeScreen(navController: NavController) {
             ) {
                 Text("Prijava putem Google računa", fontSize = 14.sp, color = Color.White)
             }
+
         }
     }
 }

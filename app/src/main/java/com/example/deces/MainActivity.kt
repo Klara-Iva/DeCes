@@ -13,6 +13,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.deces.ui.theme.DecesTheme
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -22,17 +23,20 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.common.api.ApiException
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
+import com.google.firebase.firestore.FirebaseFirestore
 
 private const val RC_SIGN_IN = 9001
 
 
 class MainActivity : ComponentActivity() {
+    private lateinit var navController: NavHostController // Define navController as a property
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setContent {
             DecesTheme {
-                val navController: NavHostController = rememberNavController()
+                navController = rememberNavController() // Initialize navController here
                 val currentRoute by navController.currentBackStackEntryAsState()
                 var isBottomBarVisible by remember { mutableStateOf(true) }
                 val onBottomBarVisibilityChanged: (Boolean) -> Unit = { isVisible ->
@@ -60,19 +64,72 @@ class MainActivity : ComponentActivity() {
             val task = GoogleSignIn.getSignedInAccountFromIntent(data)
             try {
                 val account = task.getResult(ApiException::class.java)
-                account?.idToken?.let { firebaseAuthWithGoogle(it) }
+                account?.idToken?.let { idToken ->
+                    val currentUserEmail = FirebaseAuth.getInstance().currentUser?.email
+                    if (account.email != currentUserEmail) {
+                        firebaseAuthWithGoogle(idToken) { userExists ->
+                            if (userExists) {
+                                navController.navigate("waitscreenroute") {
+                                    popUpTo("waitscreenroute") { inclusive = true }
+                                }
+                            } else {
+                                navController.navigate("chooseCity") {
+                                    popUpTo("chooseCity") { inclusive = true }
+                                }
+                            }
+                        }
+                    } else {
+                        navController.navigate("waitscreenroute") {
+                            popUpTo("waitscreenroute") { inclusive = true }
+                        }
+                    }
+                }
             } catch (e: ApiException) {
                 println("Google Sign-In failed: ${e.message}")
             }
         }
     }
-
-    private fun firebaseAuthWithGoogle(idToken: String) {
+    
+    private fun firebaseAuthWithGoogle(
+        idToken: String,
+        onComplete: (Boolean) -> Unit
+    ) {
         val auth = FirebaseAuth.getInstance()
+        val firestore = FirebaseFirestore.getInstance()
         val credential = GoogleAuthProvider.getCredential(idToken, null)
+
         auth.signInWithCredential(credential).addOnCompleteListener(this) { task ->
             if (task.isSuccessful) {
-                println("Google Sign-In successful!")
+                val currentUser = auth.currentUser
+                if (currentUser != null) {
+                    val uid = currentUser.uid
+                    val email = currentUser.email ?: ""
+
+                    firestore.collection("users").document(uid).get()
+                        .addOnSuccessListener { document ->
+                            if (document.exists()) {
+                                onComplete(true) // User exists
+                            } else {
+                                val newUser = hashMapOf(
+                                    "name" to (currentUser.displayName ?: "Unknown"),
+                                    "email" to email,
+                                    "chosenCity" to "",
+                                    "interests" to emptyList<String>() // Empty interests array
+                                )
+                                firestore.collection("users").document(uid).set(newUser)
+                                    .addOnSuccessListener {
+                                        println("New user created successfully!")
+                                        onComplete(false) // New user created
+                                    }
+                                    .addOnFailureListener {
+                                        println("Failed to create user: ${it.message}")
+                                    }
+                            }
+                        }
+                        .addOnFailureListener {
+                            println("Error fetching user: ${it.message}")
+                        }
+                }
             } else {
                 println("Google Sign-In failed: ${task.exception?.message}")
             }
