@@ -9,6 +9,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.deces.AddNewEventScreen
 import com.example.deces.AllEventsScreen
+import com.example.deces.CalendarEventScreen
 import com.example.deces.CalendarScreen
 import com.example.deces.ChangeInterestsScreen
 import com.example.deces.ChooseCityScreen
@@ -20,6 +21,7 @@ import com.example.deces.LoginScreen
 import com.example.deces.MapScreen
 import com.example.deces.RegisterScreen
 import com.example.deces.Screen5
+import java.util.Date
 
 @Composable
 fun NavigationGraph(navController: NavHostController, onBottomBarVisibilityChanged: (Boolean) -> Unit) {
@@ -31,7 +33,7 @@ fun NavigationGraph(navController: NavHostController, onBottomBarVisibilityChang
         }
         composable("calendarroute") {
             onBottomBarVisibilityChanged(true)
-            CalendarScreen()
+            CalendarScreen(navController)
         }
         composable("maproute") {
             onBottomBarVisibilityChanged(true)
@@ -91,6 +93,15 @@ fun NavigationGraph(navController: NavHostController, onBottomBarVisibilityChang
             onBottomBarVisibilityChanged(false)
             WaitScreen(navController = navController)
         }
+        composable(
+            route = "calendarEvent/{date}",
+            arguments = listOf(navArgument("date") { type = NavType.LongType })
+        ) { backStackEntry ->
+            val dateMillis = backStackEntry.arguments?.getLong("date")
+            if (dateMillis != null) {
+                val date = Date(dateMillis)
+                CalendarEventScreen(navController = navController, date = date)
+            }
         composable("AddNewEventScreen") {
             onBottomBarVisibilityChanged(false)
             AddNewEventScreen(navController = navController)

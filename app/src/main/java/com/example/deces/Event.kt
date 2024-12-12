@@ -6,6 +6,6 @@ data class Location(
     val description: String,
     val photo1: String,
     val startdate: String,
+    val enddate: String?,
     val rating: Double
 )
-
