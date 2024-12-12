@@ -83,8 +83,8 @@ fun AddNewEventScreen(navController: NavController) {
     var selectedInterest by remember { mutableStateOf<String?>(null) }
 
     val firestore = FirebaseFirestore.getInstance()
-    val cities = remember { mutableStateListOf<String>() } // To store city names
-    var selectedCity by remember { mutableStateOf("") } // Selected city
+    val cities = remember { mutableStateListOf<String>() }
+    var selectedCity by remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
         firestore.collection("availableCities").get().addOnSuccessListener { documents ->

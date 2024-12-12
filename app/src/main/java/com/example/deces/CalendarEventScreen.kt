@@ -1,7 +1,6 @@
 package com.example.deces
 
-import android.util.Log
-import androidx.activity.compose.BackHandler
+
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -22,13 +21,10 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardColors
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -47,22 +43,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.delay
-import java.text.SimpleDateFormat
-import java.util.Calendar
 import java.util.Date
-import java.util.Locale
-import kotlin.system.exitProcess
 
 @Composable
 fun CalendarEventScreen(navController: NavController, date: Date) {
-
-    //related to map screen, must be initialized here
-    val auth = FirebaseAuth.getInstance()
-    val currentUser = auth.currentUser
-    CameraBounds.getCoordinatesFromBase(currentUser!!.uid)
 
     var locations by remember { mutableStateOf(listOf<Location>()) }
     var allLocations by remember { mutableStateOf(listOf<Location>()) }

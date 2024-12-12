@@ -229,15 +229,15 @@ fun LocationCard(
         shape = RoundedCornerShape(16.dp),
         modifier = Modifier
             .padding(8.dp)
-            .fillMaxWidth() // Zauzmi punu širinu
-            .height(120.dp) // Postavi fiksnu visinu za testiranje
+            .fillMaxWidth()
+            .height(120.dp)
             .clickable {
                 navController.navigate("eventDetail/${location.id}")
             }
     ) {
         Row(
             modifier = Modifier
-                .fillMaxHeight() // Osigurava da Row rasteže cijelu visinu
+                .fillMaxHeight()
         ) {
             Box {
                 Image(
@@ -252,22 +252,27 @@ fun LocationCard(
             Column(
                 modifier = Modifier
                     .padding(top = 16.dp, start = 8.dp, bottom = 8.dp)
-                    .fillMaxHeight() // Omogućuje raspodjelu prostora unutar stupca
+                    .fillMaxHeight()
             ) {
+                var titleFontSize =24.sp
+                if (location.name.length in 21..39){titleFontSize= 18.sp}
+                else if(location.name.length > 40){titleFontSize= 14.sp}
+
                 Text(
                     location.name,
                     maxLines = 2,
-                    fontSize = 24.sp,
+                    fontSize = titleFontSize,
                     textAlign = TextAlign.Start,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    location.startdate,
+                    location.startdate+" - "+location.enddate,
                     fontSize = 14.sp,
-                    textAlign = TextAlign.Start
+                    textAlign = TextAlign.Start,
+                    modifier = Modifier.padding(top = 4.dp)
                 )
                 Spacer(
-                    modifier = Modifier.weight(1f) // Guranje ratinga prema dnu
+                    modifier = Modifier.weight(1f)
                 )
                 Text(
                     "(${location.rating}) ☆",
@@ -295,8 +300,8 @@ fun fetchLocationsFromFirestore(
                 val name = doc.getString("name")
                 val imageUrl = doc.getString("photo1")
                 val description = doc.getString("description")
-                val startdate = doc.getTimestamp("startdate")?.toDate() ?: Date()
-                val enddate = doc.getTimestamp("enddate")?.toDate() ?: Date()
+                val startdate = doc.getTimestamp("startDate")?.toDate() ?: Date()
+                val enddate = doc.getTimestamp("endDate")?.toDate() ?: Date()
                 val dateFormat = SimpleDateFormat("dd.MM.yyyy.", Locale.getDefault())
                 val formattedDate = dateFormat.format(startdate)
                 val formattedEndDate = dateFormat.format(enddate)

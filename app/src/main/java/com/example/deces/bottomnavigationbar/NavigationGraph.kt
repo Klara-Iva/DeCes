@@ -11,6 +11,7 @@ import com.example.deces.AddNewEventScreen
 import com.example.deces.AllEventsScreen
 import com.example.deces.CalendarEventScreen
 import com.example.deces.CalendarScreen
+import com.example.deces.CalendarScreen2
 import com.example.deces.ChangeInterestsScreen
 import com.example.deces.ChooseCityScreen
 import com.example.deces.ChooseInterestsScreen
@@ -33,7 +34,7 @@ fun NavigationGraph(navController: NavHostController, onBottomBarVisibilityChang
         }
         composable("calendarroute") {
             onBottomBarVisibilityChanged(true)
-            CalendarScreen(navController)
+            CalendarScreen2(navController)
         }
         composable("maproute") {
             onBottomBarVisibilityChanged(true)

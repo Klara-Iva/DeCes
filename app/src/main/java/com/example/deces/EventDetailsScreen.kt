@@ -381,7 +381,7 @@ fun EventDetailScreen(documentId: String, navController: NavController) {
                                                     val timestamp = review["date"] as? Timestamp
                                                     date = timestamp?.toDate()?.let {
                                                         SimpleDateFormat(
-                                                            "dd/MM/yyyy", Locale.getDefault()
+                                                            "dd.MM.yyyy      HH:mm", Locale.getDefault()
                                                         ).format(it)
                                                     }.toString()
                                                 }

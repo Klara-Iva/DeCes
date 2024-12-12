@@ -172,10 +172,10 @@ fun fetchFavoriteLocations(favoriteIds: List<String>, callback: (List<Location>)
     favoriteIds.forEach { id ->
         db.collection("events").document(id).get().addOnSuccessListener { document ->
             document?.let {
-                val date = it.getTimestamp("startdate")?.toDate() ?: Date()
-                val endDate = it.getTimestamp("enddate")?.toDate() ?: Date()
+                val startdate = it.getTimestamp("startDate")?.toDate() ?: Date()
+                val endDate = it.getTimestamp("endDate")?.toDate() ?: Date()
                 val dateFormat = SimpleDateFormat("dd.MM.yyyy.") // Format: 08.12.2024.
-                val formattedDate = dateFormat.format(date)
+                val formattedDate = dateFormat.format(startdate)
                 val formattedEndDate = dateFormat.format(endDate)
 
                 val location = Location(
@@ -243,8 +243,8 @@ fun LocationItem(
                     maxLines = 2
                 )
                 Text(
-                    text = location.startdate,
-                    fontSize = 14.sp,
+                    text = location.startdate+" - "+location.enddate,
+                    fontSize = 12.sp,
                     modifier = Modifier.padding(bottom = 8.dp),
                     color = Color.White,
                     maxLines = 2
