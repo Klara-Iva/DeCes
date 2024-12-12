@@ -84,7 +84,7 @@ fun NavigationGraph(navController: NavHostController, onBottomBarVisibilityChang
 
         }
         composable("changeinterests") {
-            onBottomBarVisibilityChanged(false)
+            onBottomBarVisibilityChanged(true)
             ChangeInterestsScreen(navController = navController)
         }
         composable("waitscreenroute") {

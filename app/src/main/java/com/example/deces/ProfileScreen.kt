@@ -3,6 +3,7 @@ package com.example.deces
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
@@ -69,24 +70,36 @@ fun Screen5(navController: NavController) {
         }
     }
     if (isDialogOpen.value) {
-        AlertDialog(onDismissRequest = { isDialogOpen.value = false },
-            title = { Text(text = "Uredi korisničko ime") },
+        AlertDialog(containerColor = Color(0xFF291b11),
+            onDismissRequest = { isDialogOpen.value = false },
+            title = { Text(text = "Ovdje unesi novo korisničko ime") },
             text = {
                 Column {
-                    BasicTextField(value = newUserName.value,
+                    OutlinedTextField(value = newUserName.value,
                         onValueChange = { newUserName.value = it },
+                        label = { Text("Unesi novo ime:") },
+                        shape = RoundedCornerShape(8.dp),
                         modifier = Modifier
-                            .background(Color.White)
-                            .padding(10.dp)
-                            .fillMaxWidth(),
-                        decorationBox = { innerTextField ->
-                            Box(modifier = Modifier.padding(8.dp)) {
-                                if (newUserName.value.isEmpty()) {
-                                    Text("Unesite novo ime", color = Color.Gray)
-                                }
-                                innerTextField()
-                            }
-                        })
+                            .width(300.dp)
+                            .padding(vertical = 8.dp)
+                            .border(
+                                width = 0.dp, color = Color.Transparent
+                            )
+                            .background(
+                                Color(0xFF8A6D57), shape = RoundedCornerShape(30.dp)
+                            ),
+                        colors = TextFieldDefaults.colors(
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
+                            focusedLabelColor = Color.White,
+                            unfocusedLabelColor = Color.White,
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent,
+                            focusedIndicatorColor = Color.Transparent,
+                        )
+                    )
+
                 }
             },
             confirmButton = {
@@ -121,7 +134,8 @@ fun Screen5(navController: NavController) {
             })
     }
     if (showDialog.value) {
-        AlertDialog(onDismissRequest = { showDialog.value = false },
+        AlertDialog(containerColor = Color(0xFF291b11),
+            onDismissRequest = { showDialog.value = false },
             title = { Text("Potvrda") },
             text = { Text("Jeste li sigurni da želite poslati mail za promjenu lozinke?") },
             confirmButton = {
@@ -154,24 +168,35 @@ fun Screen5(navController: NavController) {
     }
 
     if (isDialogOpen3.value) {
-        AlertDialog(onDismissRequest = { isDialogOpen3.value = false },
+        AlertDialog(containerColor = Color(0xFF291b11),
+            onDismissRequest = { isDialogOpen3.value = false },
             title = { Text(text = "Unesite URL nove profilne slike") },
             text = {
                 Column {
-                    BasicTextField(value = newProfilePictureUrl.value,
+                    OutlinedTextField(value = newProfilePictureUrl.value,
                         onValueChange = { newProfilePictureUrl.value = it },
+                        label = { Text("Ovdje unesi URL nove slike:") },
+                        shape = RoundedCornerShape(8.dp),
                         modifier = Modifier
-                            .background(Color.White)
-                            .padding(10.dp)
-                            .fillMaxWidth(),
-                        decorationBox = { innerTextField ->
-                            Box(modifier = Modifier.padding(8.dp)) {
-                                if (newProfilePictureUrl.value.isEmpty()) {
-                                    Text("Unesite URL nove slike", color = Color.Gray)
-                                }
-                                innerTextField()
-                            }
-                        })
+                            .width(300.dp)
+                            .padding(vertical = 8.dp)
+                            .border(
+                                width = 0.dp, color = Color.Transparent
+                            )
+                            .background(
+                                Color(0xFF8A6D57), shape = RoundedCornerShape(30.dp)
+                            ),
+                        colors = TextFieldDefaults.colors(
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
+                            focusedLabelColor = Color.White,
+                            unfocusedLabelColor = Color.White,
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent,
+                            focusedIndicatorColor = Color.Transparent,
+                        )
+                    )
                 }
             },
             confirmButton = {
@@ -328,15 +353,15 @@ fun Screen5(navController: NavController) {
                 )
                 Divider(color = Color(0xFF6a5240), thickness = 1.dp)
 
-                MenuItem(
-                    icon = Icons.Default.LocationOn,
+                MenuItem(icon = Icons.Default.LocationOn,
                     title = "Uredi lokaciju",
-                    onClick = { navController.navigate("chooseCity?fromProfile=true") }
-                )
+                    onClick = { navController.navigate("chooseCity?fromProfile=true") })
 
-                if(GlobalVariables.isAdmin) {
+                if (GlobalVariables.isAdmin) {
                     Divider(color = Color(0xFF6a5240), thickness = 1.dp)
-                    MenuItem(icon = Icons.Default.AddCircle, title = "Dodaj lokaciju", onClick = { navController.navigate("AddNewEventScreen") })
+                    MenuItem(icon = Icons.Default.AddCircle,
+                        title = "Dodaj lokaciju",
+                        onClick = { navController.navigate("AddNewEventScreen") })
                 }
 
                 Divider(color = Color(0xFF6a5240), thickness = 1.dp)

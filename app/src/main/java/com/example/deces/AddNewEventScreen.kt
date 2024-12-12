@@ -2,8 +2,10 @@ package com.example.deces
 
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -13,9 +15,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
@@ -62,7 +67,7 @@ fun CustomTextField(
 fun AddNewEventScreen(navController: NavController) {
     var name by remember { mutableStateOf("") }
     var category by remember { mutableStateOf("") }
-    var city by remember { mutableStateOf("") }
+    var selectedcity by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var startDateTimestamp by remember { mutableStateOf<Long?>(null) }
     var endDateTimestamp by remember { mutableStateOf<Long?>(null) }
@@ -75,6 +80,22 @@ fun AddNewEventScreen(navController: NavController) {
     var photo5 by remember { mutableStateOf("") }
 
     val calendar = Calendar.getInstance()
+    var selectedInterest by remember { mutableStateOf<String?>(null) }
+
+    val firestore = FirebaseFirestore.getInstance()
+    val cities = remember { mutableStateListOf<String>() } // To store city names
+    var selectedCity by remember { mutableStateOf("") } // Selected city
+
+    LaunchedEffect(Unit) {
+        firestore.collection("availableCities").get().addOnSuccessListener { documents ->
+            for (document in documents) {
+                val name = document.getString("name")
+                if (name != null) cities.add(name)
+            }
+        }.addOnFailureListener {
+            println("Error fetching cities: ${it.message}")
+        }
+    }
 
     fun showDateTimePicker(onDateTimeSelected: (Long) -> Unit) {
         DatePickerDialog(
@@ -115,34 +136,123 @@ fun AddNewEventScreen(navController: NavController) {
             CustomTextField(
                 value = name,
                 onValueChange = { name = it },
-                label = "Name",
+                label = "Name (required)",
                 modifier = Modifier.fillMaxWidth()
             )
         }
 
         item {
-            CustomTextField(
-                value = category,
-                onValueChange = { category = it },
-                label = "Category",
-                modifier = Modifier.fillMaxWidth()
-            )
+            var buttonWidth by remember { mutableStateOf(0) }
+
+            var expanded by remember { mutableStateOf(false) }
+            var interests by remember { mutableStateOf<List<String>>(emptyList()) }
+
+
+            // Fetch interests from Firebase Firestore
+            LaunchedEffect(Unit) {
+                val firestore = FirebaseFirestore.getInstance()
+                firestore.collection("all_interests").document("interests").get()
+                    .addOnSuccessListener { document ->
+                        val fetchedInterests = document.get("interests") as? List<String>
+                        if (fetchedInterests != null) {
+                            interests = fetchedInterests
+                        }
+                    }.addOnFailureListener {
+                        // Handle error if needed
+                        interests = emptyList()
+                    }
+            }
+
+            Box(modifier = Modifier.fillMaxWidth()) {
+                // Button to trigger Dropdown
+                Button(onClick = { expanded = !expanded },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF8A6D57)),
+                    shape = RoundedCornerShape(50),
+                    modifier = Modifier
+                        .padding(horizontal = 30.dp)
+                        .fillMaxWidth()
+                        .onGloballyPositioned { coordinates ->
+                            buttonWidth = coordinates.size.width
+                        }) {
+                    Text(
+                        text = ( selectedInterest ?: "Select Category (required)"),
+                        color = Color.White,
+                        modifier = Modifier.padding(vertical = 10.dp)
+                    )
+                }
+
+                // Dropdown menu
+                DropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false },
+                    modifier = Modifier
+                        .width(with(LocalDensity.current) { buttonWidth.toDp() })
+                        .background(Color(0xFF8A6D57))
+                ){
+                    interests.forEach { interest ->
+                        DropdownMenuItem(onClick = {
+                            selectedInterest = interest
+                            expanded = false
+                        }, text = {
+                            Text(text = interest)
+                        })
+                    }
+                }
+            }
         }
 
         item {
-            CustomTextField(
-                value = city,
-                onValueChange = { city = it },
-                label = "City",
+            var expanded by remember { mutableStateOf(false) }
+            var buttonWidth by remember { mutableStateOf(0) }
+
+            Box(
                 modifier = Modifier.fillMaxWidth()
-            )
+            ) {
+                Button(onClick = { expanded = !expanded },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF8A6D57)),
+                    shape = RoundedCornerShape(50),
+                    modifier = Modifier
+                        .padding(horizontal = 30.dp)
+                        .fillMaxWidth()
+                        .onGloballyPositioned { coordinates ->
+                            buttonWidth = coordinates.size.width
+                        }) {
+                    Text(
+                        text = if (selectedCity.isEmpty()) "Select city (required)" else selectedCity,
+                        color = Color.White,
+                        modifier = Modifier.padding(vertical = 10.dp)
+                    )
+                }
+                DropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false },
+                    modifier = Modifier
+                        .width(with(LocalDensity.current) { buttonWidth.toDp() })
+                        .background(Color(0xFF8A6D57))
+                ) {
+                    cities.forEachIndexed { index, city ->
+                        DropdownMenuItem(onClick = {
+                            selectedCity = city
+                            expanded = false
+                        }, modifier = Modifier.fillMaxWidth(), text = {
+                            Text(text = city, color = Color.White)
+                        })
+                        if (index != cities.size - 1) {
+                            Divider(
+                                color = Color(0xFF291b11),
+                                thickness = 1.dp,
+                            )
+                        }
+                    }
+                }
+            }
         }
 
         item {
             CustomTextField(
                 value = description,
                 onValueChange = { description = it },
-                label = "Description",
+                label = "Description (required)",
                 modifier = Modifier.fillMaxWidth()
             )
         }
@@ -156,8 +266,8 @@ fun AddNewEventScreen(navController: NavController) {
                     .padding(horizontal = 24.dp)
 
             ) {
-                Text(startDateTimestamp?.let { "Start Date: ${Date(it)}" } ?: "Select Start Date",
-                    modifier = Modifier.padding(8.dp))
+                Text(startDateTimestamp?.let { "Start Date: ${Date(it)}" }
+                    ?: "Select Start Date (required)", modifier = Modifier.padding(8.dp))
             }
         }
 
@@ -171,8 +281,8 @@ fun AddNewEventScreen(navController: NavController) {
                     .padding(horizontal = 24.dp)
                     .padding(top = 8.dp)
             ) {
-                Text(endDateTimestamp?.let { "End Date: ${Date(it)}" } ?: "Select End Date",
-                    modifier = Modifier.padding(8.dp))
+                Text(endDateTimestamp?.let { "End Date: ${Date(it)}" }
+                    ?: "Select End Date (required)", modifier = Modifier.padding(8.dp))
             }
         }
 
@@ -180,7 +290,7 @@ fun AddNewEventScreen(navController: NavController) {
             CustomTextField(
                 value = latitude,
                 onValueChange = { latitude = it },
-                label = "Latitude",
+                label = "Latitude (required)",
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                 modifier = Modifier.fillMaxWidth()
             )
@@ -190,7 +300,7 @@ fun AddNewEventScreen(navController: NavController) {
             CustomTextField(
                 value = longitude,
                 onValueChange = { longitude = it },
-                label = "Longitude",
+                label = "Longitude (required)",
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                 modifier = Modifier.fillMaxWidth()
             )
@@ -200,7 +310,7 @@ fun AddNewEventScreen(navController: NavController) {
             CustomTextField(
                 value = photo1,
                 onValueChange = { photo1 = it },
-                label = "Photo 1 URL",
+                label = "Photo 1 URL (recommended)",
                 modifier = Modifier.fillMaxWidth()
             )
         }
@@ -209,7 +319,7 @@ fun AddNewEventScreen(navController: NavController) {
             CustomTextField(
                 value = photo2,
                 onValueChange = { photo2 = it },
-                label = "Photo 2 URL",
+                label = "Photo 2 URL (optional)",
                 modifier = Modifier.fillMaxWidth()
             )
         }
@@ -218,7 +328,7 @@ fun AddNewEventScreen(navController: NavController) {
             CustomTextField(
                 value = photo3,
                 onValueChange = { photo3 = it },
-                label = "Photo 3 URL",
+                label = "Photo 3 URL  (optional)",
                 modifier = Modifier.fillMaxWidth()
             )
         }
@@ -227,7 +337,7 @@ fun AddNewEventScreen(navController: NavController) {
             CustomTextField(
                 value = photo4,
                 onValueChange = { photo4 = it },
-                label = "Photo 4 URL",
+                label = "Photo 4 URL  (optional)",
                 modifier = Modifier.fillMaxWidth()
             )
         }
@@ -236,7 +346,7 @@ fun AddNewEventScreen(navController: NavController) {
             CustomTextField(
                 value = photo5,
                 onValueChange = { photo5 = it },
-                label = "Photo 5 URL",
+                label = "Photo 5 URL  (optional)",
                 modifier = Modifier.fillMaxWidth()
             )
         }
@@ -246,8 +356,8 @@ fun AddNewEventScreen(navController: NavController) {
                 onClick = {
                     val event = mapOf(
                         "name" to name,
-                        "category" to category,
-                        "city" to city,
+                        "category" to selectedInterest,
+                        "city" to selectedCity,
                         "description" to description,
                         "startDate" to startDateTimestamp?.let { Timestamp(Date(it)) },
                         "endDate" to endDateTimestamp?.let { Timestamp(Date(it)) },
@@ -265,15 +375,20 @@ fun AddNewEventScreen(navController: NavController) {
 
                     val db = FirebaseFirestore.getInstance()
                     val eventRef = db.collection("events").document()
-                    eventRef.set(event)
-
-                    val reviewsCollection = eventRef.collection("reviews")
-                    reviewsCollection.add(
-                        mapOf(
-                            "isFake" to true,
-                            "comment" to "Initial fake review to ensure collection exists"
-                        )
-                    )
+                    eventRef.set(event).addOnSuccessListener {
+                        Toast.makeText(
+                            navController.context,
+                            "Događaj uspješno spremljen!",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        navController.popBackStack()
+                    }.addOnFailureListener { exception ->
+                        Toast.makeText(
+                            navController.context,
+                            "Greška pri spremanju događaja: ${exception.message}",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -285,3 +400,4 @@ fun AddNewEventScreen(navController: NavController) {
         }
     }
 }
+

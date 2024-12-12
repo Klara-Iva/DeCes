@@ -87,11 +87,26 @@ fun AllEventsScreen(navController: NavController) {
     var allLocations by remember { mutableStateOf(listOf<Location>()) }
 
     LaunchedEffect(Unit) {
-        fetchLocationsFromFirestore { result ->
-            allLocations = result
-            locations = result
-        }
+        val firestore = FirebaseFirestore.getInstance()
+        val currentUser = FirebaseAuth.getInstance().currentUser
+
+        firestore.collection("users")
+            .document(currentUser!!.uid)
+            .get()
+            .addOnSuccessListener { userDoc ->
+                val interests = userDoc.get("interests") as? List<String> ?: emptyList()
+                fetchLocationsFromFirestore(interests) { result ->
+                    allLocations = result
+                    locations = result
+                }
+            }
+            .addOnFailureListener {
+                // Obrada greške
+                allLocations = emptyList()
+                locations = emptyList()
+            }
     }
+
 
     Column(
         modifier = Modifier
@@ -268,11 +283,13 @@ fun LocationCard(
 }
 
 
-//TODO filtriranje po kategorijama
-fun fetchLocationsFromFirestore(onResult: (List<Location>) -> Unit) {
+fun fetchLocationsFromFirestore(
+    userInterests: List<String>,
+    onResult: (List<Location>) -> Unit
+) {
     val firestore = FirebaseFirestore.getInstance()
     firestore.collection("events")
-        .whereEqualTo("city", CameraBounds.selectedCityName)
+        .whereEqualTo("city", CameraBounds.selectedCityName) // Filtriranje prema gradu
         .get()
         .addOnSuccessListener { documents ->
             val locations = documents.mapNotNull { doc ->
@@ -283,8 +300,15 @@ fun fetchLocationsFromFirestore(onResult: (List<Location>) -> Unit) {
                 val dateFormat = SimpleDateFormat("dd.MM.yyyy.", Locale.getDefault())
                 val formattedDate = dateFormat.format(startdate)
                 val rating = doc.getDouble("rating") ?: 0.0
-                if (name != null && imageUrl != null && description != null) {
-                    Location(doc.id, name, description, imageUrl, formattedDate, rating)
+                val category = doc.getString("category") // Dohvati kategoriju iz baze
+
+                // Filtriranje prema korisničkim interesima
+                if (name != null && imageUrl != null && description != null && category != null) {
+                    if (userInterests.contains(category)) {
+                        Location(doc.id, name, description, imageUrl, formattedDate, rating)
+                    } else {
+                        null
+                    }
                 } else {
                     null
                 }
@@ -295,6 +319,7 @@ fun fetchLocationsFromFirestore(onResult: (List<Location>) -> Unit) {
             onResult(emptyList())
         }
 }
+
 
 
 
