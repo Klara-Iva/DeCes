@@ -61,17 +61,15 @@ fun ChangeInterestsScreen(navController: NavController) {
 
         // Fetch the user's selected interests
         if (userId != null) {
-            firestore.collection("users").document(userId).get()
-                .addOnSuccessListener { document ->
-                    val userInterests = document.get("interests") as? List<String>
-                    if (userInterests != null) {
-                        // Add the user's selected interests to the list
-                        selectedInterests.addAll(userInterests)
-                    }
+            firestore.collection("users").document(userId).get().addOnSuccessListener { document ->
+                val userInterests = document.get("interests") as? List<String>
+                if (userInterests != null) {
+                    // Add the user's selected interests to the list
+                    selectedInterests.addAll(userInterests)
                 }
-                .addOnFailureListener {
-                    println("Error fetching user interests: ${it.message}")
-                }
+            }.addOnFailureListener {
+                println("Error fetching user interests: ${it.message}")
+            }
         }
     }
 

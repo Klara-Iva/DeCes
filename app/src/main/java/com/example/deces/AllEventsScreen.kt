@@ -267,6 +267,8 @@ fun LocationCard(
 
 }
 
+
+//TODO filtriranje po kategorijama
 fun fetchLocationsFromFirestore(onResult: (List<Location>) -> Unit) {
     val firestore = FirebaseFirestore.getInstance()
     firestore.collection("events")

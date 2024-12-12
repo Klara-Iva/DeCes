@@ -7,6 +7,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.example.deces.AddNewEventScreen
 import com.example.deces.AllEventsScreen
 import com.example.deces.CalendarEventScreen
 import com.example.deces.CalendarScreen
@@ -71,11 +72,14 @@ fun NavigationGraph(navController: NavHostController, onBottomBarVisibilityChang
             onBottomBarVisibilityChanged(false)
             LoginScreen(navController = navController)
         }
-        composable("chooseCity") {
-            onBottomBarVisibilityChanged(false)
-            ChooseCityScreen(navController = navController)
-
+        composable(
+            route = "chooseCity?fromProfile={fromProfile}",
+            arguments = listOf(navArgument("fromProfile") { defaultValue = "false" })
+        ) { backStackEntry ->
+            val fromProfile = backStackEntry.arguments?.getString("fromProfile") == "true"
+            ChooseCityScreen(navController, fromProfile)
         }
+
         composable("chooseInterests") {
             onBottomBarVisibilityChanged(false)
             ChooseInterestsScreen(navController = navController)
@@ -98,6 +102,9 @@ fun NavigationGraph(navController: NavHostController, onBottomBarVisibilityChang
                 val date = Date(dateMillis)
                 CalendarEventScreen(navController = navController, date = date)
             }
+        composable("AddNewEventScreen") {
+            onBottomBarVisibilityChanged(false)
+            AddNewEventScreen(navController = navController)
         }
     }
 }
