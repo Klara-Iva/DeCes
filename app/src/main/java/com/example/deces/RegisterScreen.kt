@@ -48,7 +48,6 @@ fun RegisterScreen(navController: NavController) {
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Title Text
             Text(
                 text = "Kreiraj novi račun",
                 fontSize = 28.sp,
@@ -146,7 +145,6 @@ fun RegisterScreen(navController: NavController) {
             )
 
             var birthDate by remember { mutableStateOf("") }
-            val context = LocalContext.current
             val calendar = Calendar.getInstance()
             val year = calendar.get(Calendar.YEAR)
             val month = calendar.get(Calendar.MONTH)
@@ -155,7 +153,7 @@ fun RegisterScreen(navController: NavController) {
             val openDatePicker = {
                 val datePickerDialog = DatePickerDialog(
                     context,
-                    { _: DatePicker, selectedYear: Int, selectedMonth: Int, selectedDay: Int ->
+                    { _, selectedYear, selectedMonth, selectedDay ->
                         birthDate = "$selectedDay.${selectedMonth + 1}.$selectedYear"
                     },
                     year,
@@ -201,7 +199,6 @@ fun RegisterScreen(navController: NavController) {
             // Registration Button
             Button(
                 onClick = {
-                    println("Name: $name, Email: $email, Password: $password, BirthDate: $birthDate")
                     val auth = FirebaseAuth.getInstance()
                     if (email.isNotEmpty() && password.isNotEmpty() && name.isNotEmpty() && birthDate.isNotEmpty()) {
                         auth.createUserWithEmailAndPassword(email, password)
@@ -217,7 +214,7 @@ fun RegisterScreen(navController: NavController) {
                                             "email" to email,
                                             "chosenCity" to "",
                                             "interests" to emptyList<String>(),
-                                            "birthdate" to birthDate.toString()
+                                            "birthdate" to birthDate
                                         )
                                         firestore.collection("users").document(currentUser.uid)
                                             .set(userData).addOnSuccessListener {
@@ -228,21 +225,26 @@ fun RegisterScreen(navController: NavController) {
                                                         navController.navigate("chooseCity")
                                                     }
                                             }.addOnFailureListener { e ->
-                                                println("Error adding user: ${e.message}")
+                                                Toast.makeText(
+                                                    context, "Greška pri dodavanju korisnika: ${e.message}", Toast.LENGTH_SHORT
+                                                ).show()
                                             }
                                     } else {
-                                        println("Error: User not logged in even after registration.")
+                                        Toast.makeText(
+                                            context, "Greška: Korisnik nije prijavljen nakon registracije.", Toast.LENGTH_SHORT
+                                        ).show()
                                     }
                                 } else {
-                                    println("Error: ${task.exception?.message}")
+                                    Toast.makeText(
+                                        context, "Greška: ${task.exception?.message}", Toast.LENGTH_SHORT
+                                    ).show()
                                 }
                             }
                     } else {
                         Toast.makeText(context, "Popunite sva polja!", Toast.LENGTH_SHORT).show()
-                        println("Please fill all fields.")
                     }
                 },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF58845)), // Button color
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF58845)),
                 shape = RoundedCornerShape(50),
                 modifier = Modifier
                     .width(280.dp)
@@ -253,4 +255,5 @@ fun RegisterScreen(navController: NavController) {
         }
     }
 }
+
 

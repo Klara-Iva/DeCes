@@ -24,7 +24,8 @@ import com.google.android.gms.common.api.ApiException
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.firestore.FirebaseFirestore
-
+import android.widget.Toast
+import androidx.compose.runtime.Composable
 private const val RC_SIGN_IN = 9001
 
 
@@ -85,11 +86,11 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             } catch (e: ApiException) {
-                println("Google Sign-In failed: ${e.message}")
+                Toast.makeText(this, "Google Sign-In failed: ${e.message}", Toast.LENGTH_LONG).show()
             }
         }
     }
-    
+
     private fun firebaseAuthWithGoogle(
         idToken: String,
         onComplete: (Boolean) -> Unit
@@ -118,21 +119,22 @@ class MainActivity : ComponentActivity() {
                                 )
                                 firestore.collection("users").document(uid).set(newUser)
                                     .addOnSuccessListener {
-                                        println("New user created successfully!")
+                                        Toast.makeText(this, "New user created successfully!", Toast.LENGTH_SHORT).show()
                                         onComplete(false) // New user created
                                     }
-                                    .addOnFailureListener {
-                                        println("Failed to create user: ${it.message}")
+                                    .addOnFailureListener { e ->
+                                        Toast.makeText(this, "Failed to create user: ${e.message}", Toast.LENGTH_SHORT).show()
                                     }
                             }
                         }
-                        .addOnFailureListener {
-                            println("Error fetching user: ${it.message}")
+                        .addOnFailureListener { e ->
+                            Toast.makeText(this, "Error fetching user: ${e.message}", Toast.LENGTH_SHORT).show()
                         }
                 }
             } else {
-                println("Google Sign-In failed: ${task.exception?.message}")
+                Toast.makeText(this, "Google Sign-In failed: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
             }
         }
     }
 }
+
