@@ -1,5 +1,6 @@
 package com.example.deces
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -19,12 +20,15 @@ import androidx.navigation.NavController
 import com.example.deces.bottomnavigationbar.BottomNavigationItems
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import androidx.compose.ui.platform.LocalContext
+
 
 @Composable
 fun LoginScreen(navController: NavController) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     val auth = FirebaseAuth.getInstance()
+    val context = LocalContext.current
 
     Box(
         modifier = Modifier
@@ -53,12 +57,14 @@ fun LoginScreen(navController: NavController) {
                     color = Color(0xFFB3A9A1),
                 )
 
-                Text(text = " Registriraj se",
+                Text(
+                    text = " Registriraj se",
                     fontSize = 14.sp,
                     color = Color(0xFFf58845),
                     modifier = Modifier.clickable {
                         navController.navigate("Register")
-                    })
+                    }
+                )
             }
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -133,11 +139,11 @@ fun LoginScreen(navController: NavController) {
                                 } else {
                                     val errorMessage =
                                         task.exception?.localizedMessage ?: "Login failed"
-                                    println("Error: $errorMessage")
+                                    Toast.makeText(context, "Error: $errorMessage", Toast.LENGTH_SHORT).show()
                                 }
                             }
                     } else {
-                        println("Please fill all fields.")
+                        Toast.makeText(context, "Please fill all fields.", Toast.LENGTH_SHORT).show()
                     }
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF58845)),
@@ -152,3 +158,4 @@ fun LoginScreen(navController: NavController) {
         }
     }
 }
+

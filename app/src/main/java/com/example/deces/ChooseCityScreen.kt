@@ -2,6 +2,7 @@ package com.example.deces
 
 import android.app.Activity
 import android.graphics.Camera
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -45,6 +46,7 @@ fun ChooseCityScreen(navController: NavController, fromProfile: Boolean) {
     val cities = remember { mutableStateListOf<String>() } // To store city names
     var selectedCity by remember { mutableStateOf("") } // Selected city
     var expanded by remember { mutableStateOf(false) } // Dropdown state
+    val context = LocalContext.current
 
     // Fetch city names from Firestore
     LaunchedEffect(Unit) {
@@ -54,7 +56,7 @@ fun ChooseCityScreen(navController: NavController, fromProfile: Boolean) {
                 if (name != null) cities.add(name)
             }
         }.addOnFailureListener {
-            println("Error fetching cities: ${it.message}")
+            Toast.makeText(context, "Greška pri dohvaćanju gradova: ${it.message}", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -137,12 +139,9 @@ fun ChooseCityScreen(navController: NavController, fromProfile: Boolean) {
                                 thickness = 1.dp,
                             )
                         }
-
                     }
                 }
             }
-
-
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -157,7 +156,7 @@ fun ChooseCityScreen(navController: NavController, fromProfile: Boolean) {
                             firestore.collection("users").document(currentUser.uid)
                                 .update("chosenCity", CameraBounds.selectedCityName)
                                 .addOnSuccessListener {
-                                    println("Chosen city saved successfully: ${CameraBounds.selectedCityName}")
+                                    Toast.makeText(context, "Grad uspješno spremljen: ${CameraBounds.selectedCityName}", Toast.LENGTH_SHORT).show()
                                     if (fromProfile) {
                                         navController.popBackStack()
                                     } else {
@@ -165,14 +164,13 @@ fun ChooseCityScreen(navController: NavController, fromProfile: Boolean) {
                                     }
                                 }
                                 .addOnFailureListener { e ->
-
-                                    println("Error saving chosen city: ${e.message}")
+                                    Toast.makeText(context, "Greška pri spremanju grada: ${e.message}", Toast.LENGTH_SHORT).show()
                                 }
                         } else {
-                            println("Error: User not logged in.")
+                            Toast.makeText(context, "Greška: Korisnik nije prijavljen.", Toast.LENGTH_SHORT).show()
                         }
                     } else {
-                        println("Error: No city selected.")
+                        Toast.makeText(context, "Greška: Niste odabrali grad.", Toast.LENGTH_SHORT).show()
                     }
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF58845)),
@@ -181,7 +179,7 @@ fun ChooseCityScreen(navController: NavController, fromProfile: Boolean) {
             ) {
                 Text("Spremi odabir", fontSize = 16.sp, color = Color.White)
             }
-
         }
     }
 }
+
